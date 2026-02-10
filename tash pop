@@ -1,0 +1,180 @@
+[1mdiff --git a/.env b/.env[m
+[1mindex 343478c..2d3d74d 100644[m
+[1m--- a/.env[m
+[1m+++ b/.env[m
+[36m@@ -33,7 +33,7 @@[m [mDEFAULT_URI=http://localhost[m
+ # DATABASE_URL="sqlite:///%kernel.project_dir%/var/data_%kernel.environment%.db"[m
+ # DATABASE_URL="mysql://app:!ChangeMe!@127.0.0.1:3306/app?serverVersion=8.0.32&charset=utf8mb4"[m
+ # DATABASE_URL="mysql://app:!ChangeMe!@127.0.0.1:3306/app?serverVersion=10.11.2-MariaDB&charset=utf8mb4"[m
+[31m-DATABASE_URL="mysql://root:@127.0.0.1:3307/Pisymfony?serverVersion=8.0.32&charset=utf8mb4"[m
+[32m+[m[32mDATABASE_URL="mysql://root:@127.0.0.1:3307/Pidev?serverVersion=8.0.32&charset=utf8mb4"[m
+ [m
+ ###< doctrine/doctrine-bundle ###[m
+ [m
+[1mdiff --git a/config/packages/security.yaml b/config/packages/security.yaml[m
+[1mindex 6bdcb82..920b0fc 100644[m
+[1m--- a/config/packages/security.yaml[m
+[1m+++ b/config/packages/security.yaml[m
+[36m@@ -26,7 +26,7 @@[m [msecurity:[m
+         target: ui_login[m
+ [m
+   access_control:[m
+[31m-    - { path: ^/admin, roles: PUBLIC_ACCESS }[m
+[32m+[m[32m    - { path: ^/admin, roles: ROLE_ADMIN  }[m
+     - { path: ^/profile, roles: ROLE_USER }[m
+     - { path: ^/forgot-password, roles: PUBLIC_ACCESS }[m
+     - { path: ^/reset-password, roles: PUBLIC_ACCESS }[m
+[1mdiff --git a/src/Form/PlayerType.php b/src/Form/PlayerType.php[m
+[1mindex 159371a..04e2bc6 100644[m
+[1m--- a/src/Form/PlayerType.php[m
+[1m+++ b/src/Form/PlayerType.php[m
+[36m@@ -3,8 +3,9 @@[m
+ namespace App\Form;[m
+ [m
+ use App\Entity\Player;[m
+[32m+[m[32muse App\Entity\Team;[m
+[32m+[m[32muse Symfony\Bridge\Doctrine\Form\Type\EntityType;[m
+ use Symfony\Component\Form\AbstractType;[m
+[31m-use Symfony\Component\Form\Extension\Core\Type\TextType;[m
+ use Symfony\Component\Form\FormBuilderInterface;[m
+ use Symfony\Component\OptionsResolver\OptionsResolver;[m
+ [m
+[36m@@ -13,10 +14,14 @@[m [mclass PlayerType extends AbstractType[m
+     public function buildForm(FormBuilderInterface $builder, array $options): void[m
+     {[m
+         $builder[m
+[31m-            ->add('name', TextType::class, [[m
+[31m-                'label' => 'Nom',[m
+[31m-            ])[m
+[31m-        ;[m
+[32m+[m[32m            ->add('name')[m
+[32m+[m[32m            ->add('photo')[m
+[32m+[m[32m            ->add('team', EntityType::class, [[m
+[32m+[m[32m                'class' => Team::class,[m
+[32m+[m[32m                'choice_label' => 'name',[m
+[32m+[m[32m                'placeholder' => 'Choose a team',[m
+[32m+[m[32m                'required' => true,[m
+[32m+[m[32m            ]);[m
+     }[m
+ [m
+     public function configureOptions(OptionsResolver $resolver): void[m
+[1mdiff --git a/templates/front/profile.html.twig b/templates/front/profile.html.twig[m
+[1mindex ac62c0d..fcb0620 100644[m
+[1m--- a/templates/front/profile.html.twig[m
+[1m+++ b/templates/front/profile.html.twig[m
+[36m@@ -2,23 +2,106 @@[m
+ {% block title %}Profile{% endblock %}[m
+ [m
+ {% block body %}[m
+[31m-<h1>My Profile</h1>[m
+[31m-<p class="subtitle">Personal information</p>[m
+[32m+[m[32m<style>[m
+[32m+[m[32m  /* Profile layout inside the existing .container */[m
+[32m+[m[32m  .profile-head{[m
+[32m+[m[32m    display:flex; align-items:flex-start; justify-content:space-between;[m
+[32m+[m[32m    gap:14px; margin-bottom:18px;[m
+[32m+[m[32m  }[m
+[32m+[m[32m  .profile-head h1{margin:0;text-align:left;font-size:22px}[m
+[32m+[m[32m  .profile-sub{margin:6px 0 0;color:var(--muted);font-size:13px}[m
+ [m
+[31m-<p><strong>Username:</strong> {{ user.username }}</p>[m
+[31m-<p><strong>Email:</strong> {{ user.email }}</p>[m
+[32m+[m[32m  .profile-card{[m
+[32m+[m[32m    background:rgba(11,15,46,.55);[m
+[32m+[m[32m    border:1px solid rgba(49,46,129,.55);[m
+[32m+[m[32m    border-radius:16px;[m
+[32m+[m[32m    padding:16px;[m
+[32m+[m[32m  }[m
+ [m
+[31m-<div style="margin:14px 0">[m
+[31m-  <span class="badge">Role: {{ user.roleType }}</span>[m
+[31m-  <span class="badge">Status: {{ user.status }}</span>[m
+[32m+[m[32m  .profile-grid{[m
+[32m+[m[32m    display:grid;[m
+[32m+[m[32m    grid-template-columns: 1fr 1fr;[m
+[32m+[m[32m    gap:12px;[m
+[32m+[m[32m    margin-top:12px;[m
+[32m+[m[32m  }[m
+[32m+[m[32m  .profile-field{[m
+[32m+[m[32m    background:rgba(5,8,20,.55);[m
+[32m+[m[32m    border:1px solid rgba(49,46,129,.45);[m
+[32m+[m[32m    border-radius:14px;[m
+[32m+[m[32m    padding:12px;[m
+[32m+[m[32m  }[m
+[32m+[m[32m  .profile-label{display:block;color:#cbd5f5;font-size:12px;margin-bottom:6px}[m
+[32m+[m[32m  .profile-value{font-weight:800;font-size:14px;word-break:break-word}[m
+[32m+[m
+[32m+[m[32m  .profile-badges{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 6px}[m
+[32m+[m[32m  .profile-meta{color:var(--muted); font-size:13px; line-height:1.55; margin-top:10px}[m
+[32m+[m
+[32m+[m[32m  .actions{[m
+[32m+[m[32m    display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;[m
+[32m+[m[32m  }[m
+[32m+[m[32m  .btn-mini{[m
+[32m+[m[32m    display:inline-flex; align-items:center; justify-content:center;[m
+[32m+[m[32m    padding:10px 14px; border-radius:14px;[m
+[32m+[m[32m    text-decoration:none; font-weight:900; font-size:13px;[m
+[32m+[m[32m    border:1px solid rgba(49,46,129,.55);[m
+[32m+[m[32m    background:rgba(5,8,20,.45);[m
+[32m+[m[32m    color:#fff;[m
+[32m+[m[32m  }[m
+[32m+[m[32m  .btn-mini:hover{opacity:.95}[m
+[32m+[m[32m  .btn-gradient{[m
+[32m+[m[32m    border:none;[m
+[32m+[m[32m    background:linear-gradient(90deg,var(--purple),var(--blue));[m
+[32m+[m[32m  }[m
+[32m+[m[32m  .btn-outline{[m
+[32m+[m[32m    background:transparent;[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  .divider{height:1px;background:rgba(49,46,129,.35);margin:16px 0}[m
+[32m+[m
+[32m+[m[32m  @media (max-width:560px){[m
+[32m+[m[32m    .profile-grid{grid-template-columns:1fr}[m
+[32m+[m[32m  }[m
+[32m+[m[32m</style>[m
+[32m+[m
+[32m+[m[32m<div class="profile-head">[m
+[32m+[m[32m  <div>[m
+[32m+[m[32m    <h1>My Profile</h1>[m
+[32m+[m[32m    <p class="profile-sub">Personal information & quick navigation</p>[m
+[32m+[m[32m  </div>[m
+[32m+[m
+[32m+[m[32m  <a class="btn-mini btn-outline" href="{{ path('ui_profile_edit') }}">✏️ Edit</a>[m
+ </div>[m
+ [m
+[31m-<p class="subtitle">[m
+[31m-  Registered: {{ user.createdAt|date('Y-m-d H:i') }}<br>[m
+[31m-  Last activity: {{ user.lastActivityAt ? user.lastActivityAt|date('Y-m-d H:i') : '—' }}[m
+[31m-</p>[m
+[32m+[m[32m<div class="profile-card">[m
+[32m+[m[32m  <div class="profile-grid">[m
+[32m+[m[32m    <div class="profile-field">[m
+[32m+[m[32m      <span class="profile-label">Username</span>[m
+[32m+[m[32m      <div class="profile-value">{{ user.username }}</div>[m
+[32m+[m[32m    </div>[m
+[32m+[m
+[32m+[m[32m    <div class="profile-field">[m
+[32m+[m[32m      <span class="profile-label">Email</span>[m
+[32m+[m[32m      <div class="profile-value">{{ user.email }}</div>[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m  </div>[m
+[32m+[m
+[32m+[m[32m  <div class="profile-badges">[m
+[32m+[m[32m    <span class="badge">Role: {{ user.roleType }}</span>[m
+[32m+[m[32m    <span class="badge">Status: {{ user.status }}</span>[m
+[32m+[m[32m  </div>[m
+[32m+[m
+[32m+[m[32m  <div class="profile-meta">[m
+[32m+[m[32m    <div><strong>Registered:</strong> {{ user.createdAt|date('Y-m-d H:i') }}</div>[m
+[32m+[m[32m    <div><strong>Last activity:</strong> {{ user.lastActivityAt ? user.lastActivityAt|date('Y-m-d H:i') : '—' }}</div>[m
+[32m+[m[32m  </div>[m
+[32m+[m
+[32m+[m[32m  <div class="divider"></div>[m
+ [m
+[31m-<div class="link">[m
+[31m-  <a href="{{ path('ui_profile_edit') }}">Edit profile</a>[m
+[32m+[m[32m  <div class="actions">[m
+[32m+[m[32m    <a class="btn-mini btn-gradient" href="{{ path('app_player_index') }}">🏃 Players</a>[m
+[32m+[m[32m    <a class="btn-mini" href="{{ path('app_team_index') }}">👥 Teams</a>[m
+[32m+[m[32

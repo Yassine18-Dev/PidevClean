@@ -2,23 +2,106 @@
 {% block title %}Profile{% endblock %}
 
 {% block body %}
-<h1>My Profile</h1>
-<p class="subtitle">Personal information</p>
+<style>
+  /* Profile layout inside the existing .container */
+  .profile-head{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    gap:14px; margin-bottom:18px;
+  }
+  .profile-head h1{margin:0;text-align:left;font-size:22px}
+  .profile-sub{margin:6px 0 0;color:var(--muted);font-size:13px}
 
-<p><strong>Username:</strong> {{ user.username }}</p>
-<p><strong>Email:</strong> {{ user.email }}</p>
+  .profile-card{
+    background:rgba(11,15,46,.55);
+    border:1px solid rgba(49,46,129,.55);
+    border-radius:16px;
+    padding:16px;
+  }
 
-<div style="margin:14px 0">
-  <span class="badge">Role: {{ user.roleType }}</span>
-  <span class="badge">Status: {{ user.status }}</span>
+  .profile-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px;
+    margin-top:12px;
+  }
+  .profile-field{
+    background:rgba(5,8,20,.55);
+    border:1px solid rgba(49,46,129,.45);
+    border-radius:14px;
+    padding:12px;
+  }
+  .profile-label{display:block;color:#cbd5f5;font-size:12px;margin-bottom:6px}
+  .profile-value{font-weight:800;font-size:14px;word-break:break-word}
+
+  .profile-badges{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 6px}
+  .profile-meta{color:var(--muted); font-size:13px; line-height:1.55; margin-top:10px}
+
+  .actions{
+    display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;
+  }
+  .btn-mini{
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:10px 14px; border-radius:14px;
+    text-decoration:none; font-weight:900; font-size:13px;
+    border:1px solid rgba(49,46,129,.55);
+    background:rgba(5,8,20,.45);
+    color:#fff;
+  }
+  .btn-mini:hover{opacity:.95}
+  .btn-gradient{
+    border:none;
+    background:linear-gradient(90deg,var(--purple),var(--blue));
+  }
+  .btn-outline{
+    background:transparent;
+  }
+
+  .divider{height:1px;background:rgba(49,46,129,.35);margin:16px 0}
+
+  @media (max-width:560px){
+    .profile-grid{grid-template-columns:1fr}
+  }
+</style>
+
+<div class="profile-head">
+  <div>
+    <h1>My Profile</h1>
+    <p class="profile-sub">Personal information & quick navigation</p>
+  </div>
+
+  <a class="btn-mini btn-outline" href="{{ path('ui_profile_edit') }}">✏️ Edit</a>
 </div>
 
-<p class="subtitle">
-  Registered: {{ user.createdAt|date('Y-m-d H:i') }}<br>
-  Last activity: {{ user.lastActivityAt ? user.lastActivityAt|date('Y-m-d H:i') : '—' }}
-</p>
+<div class="profile-card">
+  <div class="profile-grid">
+    <div class="profile-field">
+      <span class="profile-label">Username</span>
+      <div class="profile-value">{{ user.username }}</div>
+    </div>
 
-<div class="link">
-  <a href="{{ path('ui_profile_edit') }}">Edit profile</a>
+    <div class="profile-field">
+      <span class="profile-label">Email</span>
+      <div class="profile-value">{{ user.email }}</div>
+    </div>
+  </div>
+
+  <div class="profile-badges">
+    <span class="badge">Role: {{ user.roleType }}</span>
+    <span class="badge">Status: {{ user.status }}</span>
+  </div>
+
+  <div class="profile-meta">
+    <div><strong>Registered:</strong> {{ user.createdAt|date('Y-m-d H:i') }}</div>
+    <div><strong>Last activity:</strong> {{ user.lastActivityAt ? user.lastActivityAt|date('Y-m-d H:i') : '—' }}</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="actions">
+    <a class="btn-mini btn-gradient" href="{{ path('app_player_index') }}">🏃 Players</a>
+    <a class="btn-mini" href="{{ path('app_team_index') }}">👥 Teams</a>
+    {# Optionnel: ton bouton "Passe" vers la page joueur #}
+    <a class="btn-mini" href="{{ path('app_player_index') }}">➡️ Passe</a>
+  </div>
 </div>
 {% endblock %}
