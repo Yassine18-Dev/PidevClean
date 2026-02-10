@@ -1,0 +1,168 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}Shop - {{ type }}{% endblock %}
+
+{% block body %}
+
+
+
+{# ====== FILTRES DE TRI ===== #}
+<div style="margin-bottom: 25px; display: flex; gap: 15px;">
+    
+    {# Bouton Skins (violet) #}
+    <a href="{{ path('shop', { type: 'skin' }) }}"
+       style="
+           padding: 10px 20px;
+           background: {{ type == 'skin' ? '#5b21b6' : '#7c3aed' }};
+           color: white;
+           border-radius: 8px;
+           text-decoration: none;
+           font-weight: bold;
+           transition: background 0.3s;
+       "
+       onmouseover="this.style.background='#5b21b6';"
+       onmouseout="this.style.background='{{ type == 'skin' ? '#5b21b6' : '#7c3aed' }}';">
+        🎮 Skins / Points
+    </a>
+
+    {# Bouton Merchs (bleu esports) #}
+    <a href="{{ path('shop', { type: 'merch' }) }}"
+       style="
+           padding: 10px 20px;
+           background: {{ type == 'merch' ? '#0369a1' : '#0ea5e9' }};
+           color: white;
+           border-radius: 8px;
+           text-decoration: none;
+           font-weight: bold;
+           transition: background 0.3s;
+       "
+       onmouseover="this.style.background='#0369a1';"
+       onmouseout="this.style.background='{{ type == 'merch' ? '#0369a1' : '#0ea5e9' }}';">
+        👕 Merchs
+    </a>
+    {% if is_granted('ROLE_ADMIN') %}
+<a href="{{ path('app_shop_product_new') }}"
+   style="
+       padding: 10px 20px;
+       background: #10b981;
+       color: white;
+       border-radius: 8px;
+       text-decoration: none;
+       font-weight: bold;
+       transition: background 0.3s;
+   "
+   onmouseover="this.style.background='#059669';"
+   onmouseout="this.style.background='#10b981';">
+    ➕ Ajouter produit
+</a>
+{% endif %}
+</div>
+{# ===== TRI DES PRODUITS ===== #}
+<form method="get" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
+    
+    {# Tri par prix #}
+    <label>
+        Trier par prix :
+        <select name="order" onchange="this.form.submit()">
+            <option value="asc" {% if order == 'asc' %}selected{% endif %}>Croissant</option>
+            <option value="desc" {% if order == 'desc' %}selected{% endif %}>Décroissant</option>
+        </select>
+    </label>
+
+    {# Tri par jeu #}
+    <label>
+        Filtrer par jeu :
+        <select name="game" onchange="this.form.submit()">
+            <option value="" {% if game is empty %}selected{% endif %}>Tous les jeux</option>
+            {% for g in games %}
+                <option value="{{ g.id }}" {% if game == g.id %}selected{% endif %}>{{ g.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+</form>
+
+{# ===== PRODUITS ===== #}
+{% if products is empty %}
+    <p>Aucun produit disponible pour {{ type }}.</p>
+{% else %}
+<div style="display: flex; gap: 20px; flex-wrap: wrap;">
+    {% for product in products %}
+<div class="product-card" style="width: 240px; text-align: center; position: relative; background: #140b25; padding: 15px; border-radius: 12px;">
+{% if is_granted('ROLE_ADMIN') %}
+    <div style="margin-top: 6px;">
+        {% if product.isActive %}
+            <span style="color: green; font-weight: bold;">
+                🟢 Produit actif
+            </span>
+        {% else %}
+            <span style="color: red; font-weight: bold;">
+                🔴 Produit désactivé
+            </span>
+        {% endif %}
+    </div>
+{% endif %}
+    <div class="secondary-slider" style="position: relative; width: 100%; height: 150px; overflow: hidden; border-radius: 12px; margin-bottom:10px; background: #000;">
+        
+        {# ZONE CLIQUABLE : L'IMAGE #}
+        <a href="{{ path('app_shop_product_show', {'id': product.id}) }}" class="main-link" style="display: block; width: 100%; height: 100%;">
+            {% if product.image %}
+                <img class="secondary-img" 
+                     src="{{ asset('uploads/shop/' ~ product.image) }}" 
+                     style="width:100%; height:150px; object-fit:contain; display:block;">
+            {% endif %}
+
+            {% for img in product.images %}
+                <img class="secondary-img" 
+                     src="{{ asset('uploads/shop/' ~ img.filename) }}" 
+                     style="width:100%; height:150px; object-fit:contain; display:none;">
+            {% endfor %}
+        </a>
+
+        {# ZONE BOUTONS : INDÉPENDANTS #}
+        {% if product.images|length > 0 %}
+            <button type="button" class="slider-btn prev-btn" 
+                    style="position:absolute; top:50%; left:5px; transform:translateY(-50%); z-index:20; background:rgba(124, 58, 237, 0.7); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; display: flex; align-items: center; justify-content: center;">
+                &#10094;
+            </button>
+            <button type="button" class="slider-btn next-btn" 
+                    style="position:absolute; top:50%; right:5px; transform:translateY(-50%); z-index:20; background:rgba(124, 58, 237, 0.7); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; display: flex; align-items: center; justify-content: center;">
+                &#10095;
+            </button>
+        {% endif %}
+    </div>
+
+    {# INFOS PRODUIT #}
+    <a href="{{ path('app_shop_product_show', {'id': product.id}) }}" style="text-decoration:none; color:white;">
+        <h3 style="font-size: 1.1rem; margin: 10px 0;">{{ product.name }}</h3>
+        <p style="color: #facc15; font-weight: bold; margin: 5px 0;">{{ product.price }} €</p>
+        {% if product.type == 'merch' %}
+    <div class="sizes">
+        <strong>Tailles :</strong>
+        {% for size in product.sizes %}
+            <span class="badge bg-secondary">{{ size.name }}</span>
+        {% else %}
+            <span class="text-muted">Aucune taille</span>
+        {% endfor %}
+    </div>
+{% endif %}
+    </a>
+
+    {# BOUTON PANIER #}
+    <form method="post" action="{{ path('cart_add', {'id': product.id}) }}">
+        <button type="submit" style="width: 100%; background: #7c3aed; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            🛒 Ajouter
+        </button>
+    </form>
+</div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+<script src="{{ asset('js/shop-slider.js') }}"></script>
+    {{ parent() }}
+{% endblock %}
+
+

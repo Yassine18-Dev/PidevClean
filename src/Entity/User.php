@@ -8,6 +8,9 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use App\Entity\ShopOrder;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[UniqueEntity(fields: ['email'], message: 'Email already used.')]
@@ -65,10 +68,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $resetExpiresAt = null;
 
-    public function __construct()
-    {
-        $this->createdAt = new \DateTimeImmutable();
-    }
+    
 
     public function getId(): ?int { return $this->id; }
 
@@ -124,4 +124,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static { $this->password = $password; return $this; }
 
     public function eraseCredentials(): void {}
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ShopOrder::class, orphanRemoval: true)]
+private Collection $orders;
+
+public function __construct()
+{
+    $this->orders = new ArrayCollection();
+    $this->createdAt = new \DateTimeImmutable();
+
+}
+
+/**
+ * @return Collection|ShopOrder[]
+ */
+public function getOrders(): Collection
+{
+    return $this->orders;
+}
 }

@@ -1,0 +1,20 @@
+{# shop_product/new.html.twig #}
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}Ajouter un produit{% endblock %}
+
+{% block body %}
+<h1>Ajouter un produit</h1>
+
+{{ form_start(form) }}
+    {{ form_row(form.name) }}
+    {{ form_row(form.price) }}
+    {{ form_row(form.type) }}
+    {{ form_row(form.game) }}
+    {{ form_row(form.image) }}
+    {{ form_row(form.imagesFiles) }}
+    <button class="btn btn-primary">Ajouter</button>
+{{ form_end(form) }}
+
+<a href="{{ path('app_shop_product_index') }}">Retour à la liste</a>
+{% endblock %}

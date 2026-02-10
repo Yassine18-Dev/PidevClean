@@ -11,6 +11,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Controller\Admin\ShopOrderController;
+use App\Entity\ShopOrder;
+use Symfony\Component\Security\Http\Logout\LogoutHandlerInterface;
 
 #[Route('/admin/users')]
 class UserAdminController extends AbstractController
@@ -113,19 +116,43 @@ class UserAdminController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/delete', name: 'ui_admin_user_delete', methods: ['POST'])]
-    public function delete(Request $request, User $user, EntityManagerInterface $em): Response
-    {
-        $token = (string)$request->request->get('_token');
-        if (!$this->isCsrfTokenValid('del_user_'.$user->getId(), $token)) {
-            $this->addFlash('error', 'Invalid CSRF token.');
-            return $this->redirectToRoute('ui_admin_users');
-        }
-
-        $em->remove($user);
-        $em->flush();
-
-        $this->addFlash('success', 'User deleted.');
+   #[Route('/{id}/delete', name: 'ui_admin_user_delete', methods: ['POST'])]
+public function delete(Request $request, User $user, EntityManagerInterface $em): Response
+{
+    // Vérifier CSRF
+    $token = (string)$request->request->get('_token');
+    if (!$this->isCsrfTokenValid('del_user_'.$user->getId(), $token)) {
+        $this->addFlash('error', 'Invalid CSRF token.');
         return $this->redirectToRoute('ui_admin_users');
     }
+
+    // Vérifier si l'utilisateur connecté essaie de se supprimer
+    /** @var \App\Entity\User $currentUser */
+    $currentUser = $this->getUser();
+    if ($currentUser && $currentUser->getId() === $user->getId()) {
+        $this->addFlash('error', 'Vous ne pouvez pas supprimer votre propre compte.');
+        return $this->redirectToRoute('ui_admin_users');
+    }
+
+    // Vérifier si toutes les commandes sont PAID avant suppression
+    $orders = $user->getOrders(); // Assurez-vous que getOrders() existe dans User
+    foreach ($orders as $order) {
+        if ($order->getStatus() !== 'PAID') {
+            $this->addFlash('error', 'Impossible de supprimer l’utilisateur : certaines commandes ne sont pas payées.');
+            return $this->redirectToRoute('ui_admin_users');
+        }
+    }
+
+    // Supprimer les commandes payées
+    foreach ($orders as $order) {
+        $em->remove($order);
+    }
+
+    // Supprimer l’utilisateur
+    $em->remove($user);
+    $em->flush();
+
+    $this->addFlash('success', 'Utilisateur supprimé avec succès.');
+    return $this->redirectToRoute('ui_admin_users');
+}
 }

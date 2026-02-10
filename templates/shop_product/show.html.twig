@@ -1,0 +1,94 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}{{ shop_product.name }} - Détail{% endblock %}
+
+{% block body %}
+{% if is_granted('ROLE_ADMIN') %}
+<div style="text-align: center; margin-top: 20px;">
+    <a href="{{ path('app_shop_product_edit', {'id': shop_product.id}) }}"
+       style="
+           padding: 10px 20px;
+           background: #f59e0b;
+           color: white;
+           border-radius: 8px;
+           text-decoration: none;
+           font-weight: bold;
+           transition: background 0.3s;
+           display: inline-block;
+       "
+       onmouseover="this.style.background='#d97706';"
+       onmouseout="this.style.background='#f59e0b';">
+        ✏️ Modifier produit
+    </a>
+</div>
+{% endif %}
+
+
+
+
+<h1>{{ shop_product.name }}</h1>
+
+<div style="display: flex; gap: 40px; flex-wrap: wrap;">
+
+    {# ===== SLIDER IMAGES ===== #}
+    <div style="flex: 1; min-width: 300px; max-width: 500px;">
+
+        {# Container slider #}
+        <div class="secondary-slider" style="position: relative; width: 100%; max-height: 400px; overflow: hidden; border-radius:12px;">
+            
+            {% set all_images = [] %}
+
+            {# Ajoute l'image principale #}
+            {% if shop_product.image %}
+                {% set all_images = all_images|merge([shop_product.image]) %}
+            {% endif %}
+
+            {# Ajoute les autres images, en évitant la principale #}
+            {% for img in shop_product.images %}
+                {% if img.filename != shop_product.image %}
+                    {% set all_images = all_images|merge([img.filename]) %}
+                {% endif %}
+            {% endfor %}
+
+            {# Images du slider #}
+            {% for img in all_images %}
+    <img src="{{ asset('uploads/shop/' ~ img) }}" 
+         class="secondary-img" 
+         style="width:100%; height:400px; object-fit:contain; border-radius:12px;
+                display: {% if loop.first %}block{% else %}none{% endif %};">
+{% endfor %}
+
+            {% if shop_product.images|length > 0 %}
+            <button type="button" class="slider-btn prev-btn" 
+                    style="position:absolute; top:50%; left:5px; transform:translateY(-50%); z-index:20; background:rgba(124, 58, 237, 0.7); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; display: flex; align-items: center; justify-content: center;">
+                &#10094;
+            </button>
+            <button type="button" class="slider-btn next-btn" 
+                    style="position:absolute; top:50%; right:5px; transform:translateY(-50%); z-index:20; background:rgba(124, 58, 237, 0.7); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; display: flex; align-items: center; justify-content: center;">
+                &#10095;
+            </button>
+        {% endif %}
+    </div>
+
+
+        
+
+    {# ===== INFORMATIONS PRODUIT ===== #}
+    <div style="flex: 1; min-width: 250px;">
+        <p><strong>Prix :</strong> {{ shop_product.price }} €</p>
+        {% if shop_product.game %}
+            <p><strong>Jeu :</strong> {{ shop_product.game.name }}</p>
+        {% endif %}
+        <p><strong>Type :</strong> {{ shop_product.type|capitalize }}</p>
+    </div>
+    <form method="post" action="{{ path('cart_add', {'id': shop_product.id}) }}">
+        <button type="submit" style="width: 100%; background: #7c3aed; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            🛒 Ajouter
+        </button>
+    </form>
+</div>
+{% endblock %}
+{% block javascripts %}
+    <script src="{{ asset('js/shop-slider.js') }}"></script>
+{% endblock %}      
+        

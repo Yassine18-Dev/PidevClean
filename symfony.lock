@@ -22,6 +22,21 @@
             "./src/Repository/.gitignore"
         ]
     },
+<<<<<<< HEAD
+=======
+    "doctrine/doctrine-fixtures-bundle": {
+        "version": "4.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "3.0",
+            "ref": "1f5514cfa15b947298df4d771e694e578d4c204d"
+        },
+        "files": [
+            "./src/DataFixtures/AppFixtures.php"
+        ]
+    },
+>>>>>>> e0033dd357953022222c1bc2abee51ef76f2774a
     "doctrine/doctrine-migrations-bundle": {
         "version": "3.7",
         "recipe": {
@@ -119,7 +134,11 @@
         ]
     },
     "symfony/maker-bundle": {
+<<<<<<< HEAD
         "version": "1.66",
+=======
+        "version": "1.65",
+>>>>>>> e0033dd357953022222c1bc2abee51ef76f2774a
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
