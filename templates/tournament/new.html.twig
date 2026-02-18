@@ -1,0 +1,22 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}New Tournament{% endblock %}
+
+{% block body %}
+{% include '_ui/am_styles.html.twig' %}
+
+<div class="am-page">
+  <div class="am-shell">
+    <div class="am-card">
+      <div class="am-card__header">
+        <div>
+          <h1 class="am-title">Create Tournament</h1>
+          <div class="am-subtitle">Ajoutez un tournoi (contrôles de saisie via Symfony Validator).</div>
+        </div>
+      </div>
+      <div class="am-card__body">
+        {{ include('tournament/_form.html.twig', {'form': form, 'button_label': 'Create'}) }}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

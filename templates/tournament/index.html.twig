@@ -1,0 +1,55 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}Tournaments • CRUD{% endblock %}
+
+{% block body %}
+{% include '_ui/am_styles.html.twig' %}
+
+<div class="am-page">
+  <div class="am-shell">
+    <div class="am-toolbar">
+      <div>
+        <h1 class="am-title">Manage Tournaments</h1>
+        <div class="am-subtitle">CRUD du module Tournoi (validation Symfony + messages d'erreur Symfony).</div>
+      </div>
+      <div class="am-actions">
+        <a class="am-btn" href="{{ path('am_tournaments') }}">⬅️ Back to Upcoming Tournaments</a>
+        <a class="am-btn am-btn--primary" href="{{ path('am_tournament_new') }}">➕ New Tournament</a>
+      </div>
+    </div>
+
+    <table class="am-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Game</th>
+          <th>Start</th>
+          <th>Slots</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tournaments %}
+          <tr>
+            <td>{{ t.id }}</td>
+            <td>{{ t.name }}</td>
+            <td>{{ t.game ? t.game.name : '—' }}</td>
+            <td>{{ t.startAt|date('Y-m-d H:i') }}</td>
+            <td>{{ t.slots }}</td>
+            <td>{{ t.status }}</td>
+            <td>
+              <a class="am-btn" href="{{ path('am_tournament_show', {'id': t.id}) }}">Show</a>
+              <a class="am-btn" href="{{ path('am_tournament_edit', {'id': t.id}) }}">Edit</a>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7" class="am-muted">Aucun tournoi pour le moment.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

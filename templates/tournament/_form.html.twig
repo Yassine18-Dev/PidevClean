@@ -1,0 +1,82 @@
+{% include '_ui/am_styles.html.twig' %}
+
+<style>
+  .am-form{display:grid;gap:14px}
+  .am-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .am-field{background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:12px}
+  .am-label{display:block;color:rgba(255,255,255,.80);font-weight:800;font-size:13px;margin-bottom:8px}
+  .am-errors{margin:8px 0 0;color:#fecaca;font-size:13px}
+  .am-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+  @media (max-width: 800px){.am-grid2{grid-template-columns:1fr}}
+</style>
+
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'am-form'}}) }}
+  {{ form_errors(form) }}
+
+  <div class="am-field">
+    <span class="am-label">{{ form_label(form.name) }}</span>
+    {{ form_widget(form.name) }}
+    <div class="am-errors">{{ form_errors(form.name) }}</div>
+  </div>
+
+  <div class="am-grid2">
+    <div class="am-field">
+      <span class="am-label">{{ form_label(form.game) }}</span>
+      {{ form_widget(form.game) }}
+      <div class="am-errors">{{ form_errors(form.game) }}</div>
+    </div>
+
+    <div class="am-field">
+      <span class="am-label">{{ form_label(form.status) }}</span>
+      {{ form_widget(form.status) }}
+      <div class="am-errors">{{ form_errors(form.status) }}</div>
+    </div>
+  </div>
+
+  <div class="am-grid2">
+    <div class="am-field">
+      <span class="am-label">{{ form_label(form.startAt) }}</span>
+      {{ form_widget(form.startAt) }}
+      <div class="am-errors">{{ form_errors(form.startAt) }}</div>
+    </div>
+
+    <div class="am-field">
+      <span class="am-label">{{ form_label(form.checkInAt) }}</span>
+      {{ form_widget(form.checkInAt) }}
+      <div class="am-errors">{{ form_errors(form.checkInAt) }}</div>
+    </div>
+  </div>
+
+  <div class="am-grid2">
+    <div class="am-field">
+      <span class="am-label">{{ form_label(form.slots) }}</span>
+      {{ form_widget(form.slots) }}
+      <div class="am-errors">{{ form_errors(form.slots) }}</div>
+    </div>
+
+    <div class="am-field">
+      <span class="am-label">{{ form_label(form.format) }}</span>
+      {{ form_widget(form.format) }}
+      <div class="am-errors">{{ form_errors(form.format) }}</div>
+    </div>
+  </div>
+
+  <div class="am-grid2">
+    <div class="am-field">
+      <span class="am-label">{{ form_label(form.prize) }}</span>
+      {{ form_widget(form.prize) }}
+      <div class="am-errors">{{ form_errors(form.prize) }}</div>
+    </div>
+
+    <div class="am-field">
+      <span class="am-label">{{ form_label(form.rules) }}</span>
+      {{ form_widget(form.rules) }}
+      <div class="am-errors">{{ form_errors(form.rules) }}</div>
+    </div>
+  </div>
+
+  <div class="am-actions">
+    <button class="am-btn am-btn--primary" type="submit">{{ button_label|default('Save') }}</button>
+    <a class="am-btn" href="{{ path('am_tournament_index') }}">Cancel</a>
+  </div>
+{{ form_end(form) }}

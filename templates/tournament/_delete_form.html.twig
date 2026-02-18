@@ -1,0 +1,4 @@
+<form method="post" action="{{ path('am_tournament_delete', {'id': tournament.id}) }}" onsubmit="return confirm('Supprimer ce tournoi ?');">
+  <input type="hidden" name="_token" value="{{ csrf_token('delete_tournament_' ~ tournament.id) }}">
+  <button class="am-btn" type="submit">🗑️ Delete</button>
+</form>

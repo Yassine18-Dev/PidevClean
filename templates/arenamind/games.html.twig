@@ -1,0 +1,100 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}ArenaMind • Games{% endblock %}
+
+{% block body %}
+<style>
+  .am-section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .am-section-title h1{margin:0;text-align:left;color:#fff}
+  .am-section-title p{margin:8px 0 0;color:var(--muted);font-size:13px}
+
+  .am-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .am-game{
+    background:rgba(11,15,46,.45);
+    border:1px solid rgba(49,46,129,.55);
+    border-radius:18px;
+    overflow:hidden;
+  }
+  .am-cover{
+    height:180px;
+    background:
+      radial-gradient(500px 220px at 70% 10%, rgba(59,130,246,.35), transparent 60%),
+      radial-gradient(500px 220px at 30% 90%, rgba(168,85,247,.35), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.45));
+    border-bottom:1px solid rgba(49,46,129,.35);
+  }
+  .am-body{padding:16px}
+  .am-tag{display:inline-flex;padding:6px 10px;border-radius:999px;border:1px solid rgba(49,46,129,.55);background:rgba(5,8,20,.45);font-size:12px;font-weight:800}
+  .am-name{margin:12px 0 8px;font-size:20px;font-weight:900}
+  .am-text{color:var(--muted);font-size:13px;line-height:1.55;margin:0}
+  .am-chiprow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .am-chip{padding:7px 12px;border-radius:999px;border:1px solid rgba(49,46,129,.55);background:rgba(5,8,20,.35);font-weight:800;font-size:12px;text-decoration:none;color:#fff;opacity:.92}
+  .am-chip:hover{opacity:1}
+
+  .am-top-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .am-btn{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:10px 14px;border-radius:14px;
+    text-decoration:none;font-weight:900;
+    border:1px solid rgba(49,46,129,.55);
+    background:rgba(5,8,20,.45);color:#fff;
+  }
+  .am-btn--primary{border:none;background:linear-gradient(90deg,var(--purple),var(--blue));}
+
+  @media (max-width: 980px){.am-grid{grid-template-columns:1fr}}
+</style>
+
+<div class="am-section-title">
+  <div>
+    <h1>🎮 Featured Games</h1>
+    <p>Official links + esports competitions.</p>
+  </div>
+
+  <div class="am-top-actions">
+    <a class="am-btn" href="{{ path('am_dashboard') }}">⬅️ Back</a>
+    {# Bouton demandé vers la page CRUD (Game) #}
+    <a class="am-btn am-btn--primary" href="{{ path('am_game_index') }}">⚙️ Manage games (CRUD)</a>
+  </div>
+</div>
+
+<div class="am-grid">
+  {# Si la base est vide, on affiche 3 cartes “par défaut” comme la maquette #}
+  {% set hasDbGames = games is not empty %}
+
+  {% if not hasDbGames %}
+    {% set demo = [
+      {'tag':'FPS','name':'Valorant','desc':'5v5 tactical shooter — VCT tournaments & ranked ladders.','chips':['Official','VCT','ArenaMind Events']},
+      {'tag':'MOBA','name':'League of Legends','desc':'Weekly clash, team tournaments, strategy and comps.','chips':['Official','LoL Esports','ArenaMind Events']},
+      {'tag':'SPORT','name':'EA Sports FC (FIFA)','desc':'1v1 cups, leaderboards and official FC Pro circuit.','chips':['Official','FC Pro','ArenaMind Events']}
+    ] %}
+
+    {% for g in demo %}
+      <div class="am-game">
+        <div class="am-cover"></div>
+        <div class="am-body">
+          <span class="am-tag">{{ g.tag }}</span>
+          <div class="am-name">{{ g.name }}</div>
+          <p class="am-text">{{ g.desc }}</p>
+          <div class="am-chiprow">
+            {% for c in g.chips %}<span class="am-chip">{{ c }}</span>{% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    {% for game in games %}
+      <div class="am-game">
+        <div class="am-cover"></div>
+        <div class="am-body">
+          <span class="am-tag">GAME</span>
+          <div class="am-name">{{ game.name }}</div>
+          <p class="am-text">Max players: {{ game.maxPlayers }}</p>
+          <div class="am-chiprow">
+            <a class="am-chip" href="{{ path('am_game_show', {'id': game.id}) }}">Details</a>
+            <a class="am-chip" href="{{ path('am_game_edit', {'id': game.id}) }}">Edit</a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}

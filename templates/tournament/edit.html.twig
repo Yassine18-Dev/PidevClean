@@ -1,0 +1,25 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}Edit Tournament{% endblock %}
+
+{% block body %}
+{% include '_ui/am_styles.html.twig' %}
+
+<div class="am-page">
+  <div class="am-shell">
+    <div class="am-card">
+      <div class="am-card__header">
+        <div>
+          <h1 class="am-title">Edit Tournament</h1>
+          <div class="am-subtitle">Modifier les informations du tournoi.</div>
+        </div>
+        <div class="am-actions">
+          {{ include('tournament/_delete_form.html.twig', {'tournament': tournament}) }}
+        </div>
+      </div>
+      <div class="am-card__body">
+        {{ include('tournament/_form.html.twig', {'form': form, 'button_label': 'Update'}) }}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
