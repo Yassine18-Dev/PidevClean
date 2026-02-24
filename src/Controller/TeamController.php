@@ -54,6 +54,10 @@ class TeamController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $logoName = (string) $request->request->all('team')['logoName'] ?? (string) $request->request->get('logoName');
+            if ($logoName !== '') {
+                $team->setLogoName($logoName);
+            }
             $entityManager->persist($team);
             $entityManager->flush();
 
@@ -81,6 +85,10 @@ class TeamController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $logoName = (string) $request->request->all('team')['logoName'] ?? (string) $request->request->get('logoName');
+            if ($logoName !== '') {
+                $team->setLogoName($logoName);
+            }
             $entityManager->flush();
 
             return $this->redirectToRoute('app_team_index', [], Response::HTTP_SEE_OTHER);

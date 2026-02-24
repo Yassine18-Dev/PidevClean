@@ -16,6 +16,26 @@ class PlayerRepository extends ServiceEntityRepository
         parent::__construct($registry, Player::class);
     }
 
+    /**
+     * Simple search used for invitations.
+     *
+     * @return Player[]
+     */
+    public function searchByNickname(string $q, int $limit = 10): array
+    {
+        $q = trim(mb_strtolower($q));
+        if ($q === '') {
+            return [];
+        }
+
+        return $this->createQueryBuilder('p')
+            ->andWhere('LOWER(p.nickname) LIKE :q')
+            ->setParameter('q', '%'.$q.'%')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Player[] Returns an array of Player objects
     //     */

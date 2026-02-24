@@ -1,0 +1,122 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}Mes invitations{% endblock %}
+
+{% block body %}
+<style>
+  .wrap{max-width:1100px;margin:0 auto;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:14px;border:1px solid rgba(49,46,129,.55);background:rgba(5,8,20,.45);color:#fff;text-decoration:none;font-weight:900;font-size:13px;}
+  .btn:hover{opacity:.95}
+  .btnPrimary{border:none;background:linear-gradient(90deg,var(--purple),var(--blue));}
+  .btnDanger{border:none;background:linear-gradient(90deg,#ef4444,#b91c1c);}
+  .card{background:rgba(11,15,46,.55);border:1px solid rgba(49,46,129,.55);border-radius:18px;padding:16px;box-shadow:0 0 40px rgba(168,85,247,.10);}
+  .muted{color:var(--muted);}
+  .tabs{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+  .tabBtn{cursor:pointer;user-select:none}
+  .tabBtn.active{border:none;background:linear-gradient(90deg,var(--purple),var(--blue));}
+  .invCard{padding:14px;}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid rgba(49,46,129,.55);background:rgba(5,8,20,.45);font-weight:900;font-size:12px;}
+  .row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <a class="btn" href="{{ path('ui_profile') }}"><i class="fa-solid fa-arrow-left"></i> Retour au profil</a>
+    <div>
+      <h1 style="margin:0;font-size:20px;"># MES INVITATIONS</h1>
+      <div class="muted" style="font-size:13px;margin-top:6px;">Reçues & envoyées</div>
+    </div>
+    <span class="pill"><i class="fa-solid fa-bell"></i> {{ invitations|length }} reçue(s)</span>
+  </div>
+
+  {% set sent = (app.user and app.user.player) ? app.user.player.sentInvitations : [] %}
+
+  <div class="card">
+    <div class="tabs">
+      <a class="btn tabBtn active" data-tab="received"><i class="fa-solid fa-inbox"></i> Reçues</a>
+      <a class="btn tabBtn" data-tab="sent"><i class="fa-solid fa-paper-plane"></i> Envoyées</a>
+    </div>
+
+    <div id="tab-received" class="tabPanel">
+      {% for inv in invitations %}
+        <div class="card invCard" style="margin-bottom:10px;">
+          <div class="row">
+            <div>
+              <div style="font-weight:1000;">
+                <i class="fa-solid fa-users"></i> {{ inv.team.name }} t'invite à rejoindre
+              </div>
+              <div class="muted" style="font-size:12px;margin-top:6px;line-height:1.6;">
+                🎮 {{ inv.team.game|upper }} • 👥 {{ inv.team.players|length }}/{{ inv.team.maxPlayers }}
+                <br>
+                📅 Reçue le {{ inv.createdAt|date('d/m/Y') }}
+                {% if inv.expiresAt %} • ⏳ Expire le {{ inv.expiresAt|date('d/m/Y') }}{% endif %}
+              </div>
+            </div>
+            <span class="pill">{{ inv.status }}</span>
+          </div>
+
+          <div class="actions">
+            <form method="post" action="{{ path('invitation_accept', {id: inv.id}) }}">
+              <button class="btn btnPrimary" type="submit"><i class="fa-solid fa-check"></i> Accepter</button>
+            </form>
+            <form method="post" action="{{ path('invitation_decline', {id: inv.id}) }}">
+              <button class="btn btnDanger" type="submit"><i class="fa-solid fa-xmark"></i> Refuser</button>
+            </form>
+            <a class="btn" href="{{ path('app_team_show', {id: inv.team.id}) }}"><i class="fa-solid fa-eye"></i> Voir équipe</a>
+          </div>
+        </div>
+      {% else %}
+        <div class="muted">Aucune invitation reçue.</div>
+      {% endfor %}
+    </div>
+
+    <div id="tab-sent" class="tabPanel" style="display:none;">
+      {% if sent is empty %}
+        <div class="muted">Aucune invitation envoyée.</div>
+      {% else %}
+        {% for inv in sent %}
+          <div class="card invCard" style="margin-bottom:10px;">
+            <div class="row">
+              <div>
+                <div style="font-weight:1000;">
+                  <i class="fa-solid fa-user"></i> {{ inv.player.nickname }}
+                </div>
+                <div class="muted" style="font-size:12px;margin-top:6px;line-height:1.6;">
+                  Équipe : {{ inv.team.name }} • 🎮 {{ inv.team.game|upper }}
+                  <br>
+                  📅 Envoyée le {{ inv.createdAt|date('d/m/Y') }}
+                  {% if inv.expiresAt %} • ⏳ Expire le {{ inv.expiresAt|date('d/m/Y') }}{% endif %}
+                </div>
+              </div>
+              <span class="pill">{{ inv.status }}</span>
+            </div>
+            <div class="actions">
+              <a class="btn" href="{{ path('app_player_show', {id: inv.player.id}) }}"><i class="fa-solid fa-eye"></i> Profil</a>
+              <a class="btn" href="{{ path('app_team_show', {id: inv.team.id}) }}"><i class="fa-solid fa-users"></i> Équipe</a>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const btns = document.querySelectorAll('.tabBtn');
+    const received = document.getElementById('tab-received');
+    const sent = document.getElementById('tab-sent');
+    btns.forEach(b=>{
+      b.addEventListener('click', (e)=>{
+        e.preventDefault();
+        btns.forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        const key = b.getAttribute('data-tab');
+        received.style.display = (key==='received') ? 'block' : 'none';
+        sent.style.display = (key==='sent') ? 'block' : 'none';
+      });
+    });
+  })();
+</script>
+{% endblock %}

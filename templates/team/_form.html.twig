@@ -2,6 +2,24 @@
   <p class="am-help">Remplis les informations puis sauvegarde.</p>
   {{ form_widget(form) }}
 
+  <div class="am-divider"></div>
+
+  <h3 style="margin:0 0 8px">Choisir un logo</h3>
+  <p class="am-help" style="margin-top:0">Sélectionne un logo prédéfini (pas d’upload).</p>
+
+  {% set current = form.vars.value.logoName ?? null %}
+  <div class="am-grid" style="grid-template-columns: repeat(5, minmax(0,1fr)); gap:10px;">
+    {% for i in 1..10 %}
+      {% set filename = 'team-logo-' ~ i ~ '.png' %}
+      {% set value = filename %}
+      <label class="am-card" style="padding:10px; cursor:pointer; border-radius:14px; border:1px solid rgba(49,46,129,.45); background:rgba(5,8,20,.45); display:flex; flex-direction:column; align-items:center; gap:8px;">
+        <input type="radio" name="team[logoName]" value="{{ value }}" {% if current == value %}checked{% endif %} />
+        <img src="{{ asset('images/team-logos/' ~ filename) }}" alt="Logo {{ i }}" style="width:54px;height:54px;border-radius:12px;" />
+        <span style="font-size:12px;color:#cbd5f5">Logo {{ i }}</span>
+      </label>
+    {% endfor %}
+  </div>
+
   <div class="am-formActions">
     <button class="am-btnPrimary">{{ button_label|default('Enregistrer') }}</button>
     <a class="am-btn" href="{{ path('app_team_index') }}">Retour</a>

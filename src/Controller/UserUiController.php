@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\InvitationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,7 +14,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class UserUiController extends AbstractController
 {
     #[Route('/profile', name: 'ui_profile', methods: ['GET'])]
-    public function profile(EntityManagerInterface $em): Response
+    public function profile(EntityManagerInterface $em, InvitationRepository $invitationRepository): Response
     {
         /** @var User|null $user */
         $user = $this->getUser();
@@ -22,7 +23,14 @@ class UserUiController extends AbstractController
         $user->setLastActivityAt(new \DateTimeImmutable());
         $em->flush();
 
-        return $this->render('front/profile.html.twig', ['user' => $user]);
+        $player = method_exists($user, 'getPlayer') ? $user->getPlayer() : null;
+        $receivedInvitations = $player ? $invitationRepository->findReceivedPending($player) : [];
+
+        return $this->render('front/profile.html.twig', [
+            'user' => $user,
+            'player' => $player,
+            'receivedInvitations' => $receivedInvitations,
+        ]);
     }
 
     #[Route('/profile/edit', name: 'ui_profile_edit', methods: ['GET','POST'])]

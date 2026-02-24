@@ -1,78 +1,68 @@
-{% extends 'base.html.twig' %}
-
+{% extends 'front/base_front.html.twig' %}
 {% block title %}Teams{% endblock %}
 
-{% block stylesheets %}
-  {{ parent() }}
-  {{ include('_ui/am_styles.html.twig') }}
-{% endblock %}
-
 {% block body %}
-  {% set nextDir = dir == 'asc' ? 'desc' : 'asc' %}
+<style>
+  .wrap{max-width:1200px;margin:0 auto;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:14px;border:1px solid rgba(49,46,129,.55);background:rgba(5,8,20,.45);color:#fff;text-decoration:none;font-weight:900;font-size:13px;}
+  .btn:hover{opacity:.95}
+  .btnPrimary{border:none;background:linear-gradient(90deg,var(--purple),var(--blue));}
+  .card{background:rgba(11,15,46,.55);border:1px solid rgba(49,46,129,.55);border-radius:18px;padding:16px;box-shadow:0 0 40px rgba(168,85,247,.10);}
+  .muted{color:var(--muted);}
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+  .tCard{padding:14px;}
+  .logo{width:78px;height:78px;border-radius:18px;object-fit:cover;border:1px solid rgba(255,255,255,.08)}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid rgba(49,46,129,.55);background:rgba(5,8,20,.45);font-weight:900;font-size:12px;}
+  .actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+  @media(max-width:1100px){.grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:650px){.grid{grid-template-columns:1fr;}}
+</style>
 
-  {% set actions %}
-    <a class="am-btn am-btn--primary" href="{{ path('app_team_new') }}">+ New Team</a>
-    <a class="am-btn" href="{{ path('app_player_index') }}">Players</a>
-  {% endset %}
-
-  {% set body %}
-    <div class="am-toolbar">
-      <form method="get" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-        <input class="am-input" type="text" name="q" value="{{ q|default('') }}" placeholder="Rechercher une team..." />
-        <select class="am-select" name="sort">
-          <option value="id" {{ sort == 'id' ? 'selected' : '' }}>Tri: ID</option>
-          <option value="name" {{ sort == 'name' ? 'selected' : '' }}>Tri: Nom</option>
-        </select>
-        <select class="am-select" name="dir">
-          <option value="asc" {{ dir == 'asc' ? 'selected' : '' }}>ASC</option>
-          <option value="desc" {{ dir == 'desc' ? 'selected' : '' }}>DESC</option>
-        </select>
-
-        <button class="am-btn" type="submit">Appliquer</button>
-
-        {% if q or sort != 'id' or dir != 'asc' %}
-          <a class="am-btn" href="{{ path('app_team_index') }}">Reset</a>
-        {% endif %}
-      </form>
-
-      <span class="am-pill">{{ teams|length }} résultat(s)</span>
+<div class="wrap">
+  <div class="topbar">
+    <a class="btn" href="{{ path('ui_profile') }}"><i class="fa-solid fa-arrow-left"></i> Retour au profil</a>
+    <div style="text-align:center;flex:1;min-width:240px;">
+      <h1 style="margin:0;font-size:20px;">Teams</h1>
+      <div class="muted" style="font-size:13px;margin-top:6px;">Liste en grille</div>
     </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a class="btn" href="{{ path('app_player_index') }}"><i class="fa-solid fa-users"></i> Players</a>
+      <a class="btn btnPrimary" href="{{ path('app_team_new') }}"><i class="fa-solid fa-plus"></i> New Team</a>
+    </div>
+  </div>
 
-    <table class="am-table">
-      <thead>
-        <tr>
-          <th>
-            <a class="am-link" href="{{ path('app_team_index', { q: q, sort: 'id', dir: sort == 'id' ? nextDir : 'asc' }) }}">ID</a>
-          </th>
-          <th>
-            <a class="am-link" href="{{ path('app_team_index', { q: q, sort: 'name', dir: sort == 'name' ? nextDir : 'asc' }) }}">Nom</a>
-          </th>
-          <th class="am-muted">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for team in teams %}
-          <tr>
-            <td>{{ team.id }}</td>
-            <td>{{ team.name }}</td>
-            <td>
-              <a class="am-btn" href="{{ path('app_team_show', {'id': team.id}) }}">Show</a>
-              <a class="am-btn" href="{{ path('app_team_edit', {'id': team.id}) }}">Edit</a>
-            </td>
-          </tr>
-        {% else %}
-          <tr>
-            <td colspan="3" class="am-muted">Aucune team trouvée.</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% endset %}
+  <div class="grid">
+    {% for team in teams %}
+      <div class="card tCard">
+        <div style="text-align:center;">
+          {% if team.logoName %}
+            <img class="logo" src="{{ asset('images/team-logos/' ~ team.logoName) }}" alt="{{ team.name }}">
+          {% else %}
+            <div class="logo" style="display:flex;align-items:center;justify-content:center;margin:0 auto;">🛡️</div>
+          {% endif %}
 
-  {{ include('_ui/page_card.html.twig', {
-    title: 'Teams',
-    subtitle: 'Recherche & tri',
-    actions: actions,
-    body: body
-  }) }}
+          <div style="margin-top:10px;font-weight:1000;">{{ team.name }}</div>
+          <div class="muted" style="font-size:12px;margin-top:6px;">
+            🎮 {{ team.game|upper }} • 👥 {{ team.players|length }}/{{ team.maxPlayers }}
+          </div>
+
+          <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+            <span class="pill">{{ team.slug ?: '—' }}</span>
+          </div>
+
+          <div class="actions">
+            <a class="btn" href="{{ path('app_team_show', {'id': team.id}) }}"><i class="fa-solid fa-eye"></i></a>
+            <a class="btn" href="#" title="Défier">⚔️</a>
+            <a class="btn" href="{{ path('app_team_edit', {'id': team.id}) }}"><i class="fa-solid fa-pen"></i></a>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="card" style="grid-column:1/-1;text-align:center;">
+        <div class="muted">Aucune équipe.</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
 {% endblock %}

@@ -25,14 +25,14 @@ class PlayerController extends AbstractController
             ->leftJoin('p.team', 't')->addSelect('t');
 
         if ($q !== '') {
-            $qb->andWhere('LOWER(p.name) LIKE :q OR LOWER(t.name) LIKE :q')
+            $qb->andWhere('LOWER(p.nickname) LIKE :q OR LOWER(t.name) LIKE :q')
                ->setParameter('q', '%'.mb_strtolower($q).'%');
         }
 
         // whitelist tri
         $sortMap = [
             'id' => 'p.id',
-            'name' => 'p.name',
+            'name' => 'p.nickname',
             'team' => 't.name',
         ];
         $orderBy = $sortMap[$sort] ?? 'p.id';
@@ -57,6 +57,11 @@ class PlayerController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Avatar selection (predefined)
+            $avatarName = (string) $request->request->all('player')['avatarName'] ?? (string) $request->request->get('avatarName');
+            if ($avatarName !== '') {
+                $player->setAvatarName($avatarName);
+            }
             $entityManager->persist($player);
             $entityManager->flush();
 
@@ -84,6 +89,10 @@ class PlayerController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $avatarName = (string) $request->request->all('player')['avatarName'] ?? (string) $request->request->get('avatarName');
+            if ($avatarName !== '') {
+                $player->setAvatarName($avatarName);
+            }
             $entityManager->flush();
 
             return $this->redirectToRoute('app_player_index', [], Response::HTTP_SEE_OTHER);

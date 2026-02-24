@@ -16,6 +16,17 @@ class TeamRepository extends ServiceEntityRepository
         parent::__construct($registry, Team::class);
     }
 
+    public function findOneWithPlayers(int $id): ?Team
+    {
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.players', 'p')->addSelect('p')
+            ->leftJoin('t.invitations', 'i')->addSelect('i')
+            ->andWhere('t.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return Team[] Returns an array of Team objects
     //     */

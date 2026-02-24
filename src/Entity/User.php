@@ -11,6 +11,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\ShopOrder;
+use App\Entity\Player;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[UniqueEntity(fields: ['email'], message: 'Email already used.')]
@@ -67,6 +68,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $resetExpiresAt = null;
+
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: Player::class)]
+    private ?Player $player = null;
 
     
 
@@ -132,6 +136,17 @@ public function __construct()
     $this->orders = new ArrayCollection();
     $this->createdAt = new \DateTimeImmutable();
 
+}
+
+public function getPlayer(): ?Player
+{
+    return $this->player;
+}
+
+public function setPlayer(?Player $player): static
+{
+    $this->player = $player;
+    return $this;
 }
 
 /**

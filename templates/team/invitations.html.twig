@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+{% block title %}Invitations{% endblock %}
+
+{% block body %}
+  {% set actions %}
+    <a class="am-btn" href="{{ path('app_team_show', {id: team.id}) }}">← Retour</a>
+    <a class="am-btn" href="{{ path('ui_profile') }}">← Retour au profil</a>
+  {% endset %}
+
+  {% set body %}
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;">
+      <div>
+        <div style="font-size:18px; font-weight:1000;">{{ team.name }}</div>
+        <div class="am-muted" style="font-size:13px;">{{ team.game|upper }} • {{ team.players|length }}/{{ team.maxPlayers }} joueurs</div>
+      </div>
+      <a class="am-btn" href="{{ path('app_team_show', {id: team.id}) }}">[← RETOUR]</a>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+      <a class="am-btn" href="{{ path('app_team_show', {id: team.id}) }}#members">MEMBRES</a>
+      <a class="am-btn am-btn--primary" href="#">INVITATIONS 🔔</a>
+      <a class="am-btn" href="{{ path('app_team_show', {id: team.id}) }}#history">HISTORIQUE</a>
+    </div>
+
+    <h3 style="margin:0 0 10px;">INVITATIONS EN ATTENTE ({{ pending|length }})</h3>
+
+    <div class="am-grid" style="grid-template-columns: 1fr; gap:10px;">
+      {% for inv in pending %}
+        <div class="am-card" style="padding:14px; border-radius:16px; border:1px solid rgba(49,46,129,.45); background:rgba(5,8,20,.45);">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <div>
+              <div style="font-weight:1000;">👤 {{ inv.player.nickname }}{% if inv.player.rank %} • {{ inv.player.rank }}{% endif %}</div>
+              <div class="am-muted" style="font-size:12px;">Demandé le {{ inv.createdAt|date('d/m/Y') }}{% if inv.expiresAt %} • expire le {{ inv.expiresAt|date('d/m/Y') }}{% endif %}</div>
+            </div>
+            <span class="am-pill">{{ inv.status }}</span>
+          </div>
+        </div>
+      {% else %}
+        <div class="am-muted">Aucune invitation en attente.</div>
+      {% endfor %}
+    </div>
+
+    <div class="am-divider"></div>
+
+    <h3 style="margin:0 0 8px;">➕ INVITER UN JOUEUR</h3>
+
+    <form method="get" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px;">
+      <input class="am-input" type="text" name="q" value="{{ search }}" placeholder="Rechercher un joueur..." />
+      <button class="am-btn" type="submit">Rechercher</button>
+      {% if search %}
+        <a class="am-btn" href="{{ path('team_invitations', {id: team.id}) }}">Reset</a>
+      {% endif %}
+    </form>
+
+    {% if results is not empty %}
+      <form method="post">
+        <div class="am-tableWrap">
+          <table class="am-table">
+            <thead>
+              <tr>
+                <th>Choix</th>
+                <th>Joueur</th>
+                <th>Jeu</th>
+                <th>Rank</th>
+                <th>Équipe</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in results %}
+                <tr>
+                  <td><input type="radio" name="player_id" value="{{ p.id }}" {% if loop.first %}checked{% endif %}></td>
+                  <td>{{ p.nickname }}</td>
+                  <td>{{ p.game|upper }}</td>
+                  <td>{{ p.rank ?: '—' }}</td>
+                  <td>{{ p.team ? p.team.name : '—' }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="am-formActions" style="margin-top:12px;">
+          <button class="am-btnPrimary" type="submit">ENVOYER L'INVITATION</button>
+        </div>
+      </form>
+    {% elseif search %}
+      <div class="am-muted">Aucun joueur trouvé.</div>
+    {% endif %}
+
+  {% endset %}
+
+  {{ include('_ui/page_card.html.twig', {
+    title: 'Invitations',
+    subtitle: 'Team → Player',
+    actions: actions,
+    body: body
+  }) }}
+{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  {{ include('_ui/am_styles.html.twig') }}
+{% endblock %}
