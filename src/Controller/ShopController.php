@@ -48,7 +48,7 @@ if ($game) {
             'order' => $order,
             'games' => $games,
             'game' => $game,
-            
+  
         ]);
     }
     

@@ -1,0 +1,363 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}Nouvelle Promotion{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card" style="background: #140b25; border: 2px solid #7c3aed; border-radius: 15px; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);">
+                <div class="card-header" style="background: linear-gradient(45deg, #7c3aed, #5b21b6); border: none; border-radius: 13px 13px 0 0;">
+                    <h2 class="mb-0 text-white">
+                        <span style="color: #facc15;">🎯</span> Créer une nouvelle promotion
+                    </h2>
+                    <p class="mb-0 mt-2 text-white-50">
+                        Configurez votre promotion marketing avec des réductions attractives
+                    </p>
+                </div>
+                
+                <div class="card-body p-4">
+                    {% for flash_message in app.session.flashBag.get('success') %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: linear-gradient(45deg, #10b981, #059669); border: none; color: white;">
+                            {{ flash_message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" style="filter: brightness(0) invert(1);"></button>
+                        </div>
+                    {% endfor %}
+
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.name, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                            {{ form_widget(form.name, {'attr': {'class': 'form-control form-control-lg', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px;'}}) }}
+                            {{ form_errors(form.name) }}
+                            <small class="form-text" style="color: #a78bfa;">⚠️ Donnez un nom clair et attractif (3-100 caractères)</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.code, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                            {{ form_widget(form.code, {'attr': {'class': 'form-control form-control-lg text-uppercase', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px;'}}) }}
+                            {{ form_errors(form.code) }}
+                            <small class="form-text" style="color: #a78bfa;">⚠️ Code unique en majuscules (2-20 caractères, A-Z0-9_)</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.description, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control form-control-lg', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px;', 'rows': 3}}) }}
+                        {{ form_errors(form.description) }}
+                        <small class="form-text" style="color: #a78bfa;">ℹ️ Optionnel - Décrivez les conditions (max 500 caractères)</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.type, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                            {{ form_widget(form.type, {'attr': {'class': 'form-select form-select-lg', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px;'}}) }}
+                            {{ form_errors(form.type) }}
+                            <small class="form-text" style="color: #a78bfa;">⚠️ Choisissez le type de réduction</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.value, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                            <div class="input-group">
+                                {{ form_widget(form.value, {'attr': {'class': 'form-control form-control-lg', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px 0 0 8px;'}}) }}
+                                <span class="input-group-text" id="value-suffix" style="background: rgba(124, 58, 237, 0.2); border: 2px solid #7c3aed; color: #facc15; border-radius: 0 8px 8px 0;">%</span>
+                            </div>
+                            {{ form_errors(form.value) }}
+                            <small class="form-text" style="color: #a78bfa;">⚠️ Valeur entre 0.01 et 100 (ex: 15 pour 15% ou 10 pour 10€)</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.minAmount, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                            <div class="input-group">
+                                {{ form_widget(form.minAmount, {'attr': {'class': 'form-control form-control-lg', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px 0 0 8px;'}}) }}
+                                <span class="input-group-text" style="background: rgba(124, 58, 237, 0.2); border: 2px solid #7c3aed; color: #facc15; border-radius: 0 8px 8px 0;">€</span>
+                            </div>
+                            {{ form_errors(form.minAmount) }}
+                            <small class="form-text" style="color: #a78bfa;">ℹ️ Montant minimum d'achat (0 si pas de minimum)</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.applyToAllProducts, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                            {{ form_widget(form.applyToAllProducts, {'attr': {'class': 'form-select form-select-lg', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px;', 'onchange': 'toggleProductSelection()'}}) }}
+                            {{ form_errors(form.applyToAllProducts) }}
+                            <small class="form-text" style="color: #a78bfa;">⚠️ Sélectionnez l'étendue de la promotion</small>
+                        </div>
+                    </div>
+
+                    <div id="product-selection" class="mb-3" style="display: none;">
+                        {{ form_label(form.products, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                        {{ form_widget(form.products, {'attr': {'class': 'form-select', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px;', 'size': 6}}) }}
+                        {{ form_errors(form.products) }}
+                        <small class="form-text" style="color: #a78bfa;">⚠️ Sélectionnez au moins un produit si non appliqué à tous</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.startDate, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                            {{ form_widget(form.startDate, {'attr': {'class': 'form-control form-control-lg', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px;'}}) }}
+                            {{ form_errors(form.startDate) }}
+                            <small class="form-text" style="color: #a78bfa;">⚠️ Date de début (doit être ≥ aujourd'hui)</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.endDate, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                            {{ form_widget(form.endDate, {'attr': {'class': 'form-control form-control-lg', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px;'}}) }}
+                            {{ form_errors(form.endDate) }}
+                            <small class="form-text" style="color: #a78bfa;">⚠️ Date de fin (doit être > date de début)</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.isActive, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                            {{ form_widget(form.isActive, {'attr': {'class': 'form-select form-select-lg', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px;'}}) }}
+                            {{ form_errors(form.isActive) }}
+                            <small class="form-text" style="color: #a78bfa;">🔥 Activez la promotion pour qu'elle soit visible</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form_label(form.isPublic, null, {'label_attr': {'class': 'form-label fw-bold', 'style': 'color: #facc15; font-weight: bold;'}}) }}
+                            {{ form_widget(form.isPublic, {'attr': {'class': 'form-select form-select-lg', 'style': 'background: rgba(124, 58, 237, 0.1); border: 2px solid #7c3aed; color: white; border-radius: 8px;'}}) }}
+                            {{ form_errors(form.isPublic) }}
+                            <small class="form-text" style="color: #a78bfa;">👁️ Rendez-la visible par tous ou admin seulement</small>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4" style="background: linear-gradient(45deg, #0ea5e9, #0369a1); border: none; color: white; border-radius: 10px;">
+                        <h5 style="color: white; font-weight: bold;">
+                            <span style="color: #facc15;">📋</span> Règles de validation importantes
+                        </h5>
+                        <ul class="mb-0" style="color: white;">
+                            <li>✅ <strong>Obligatoires:</strong> Nom, Code, Type, Valeur, Dates</li>
+                            <li>⚠️ <strong>Format Code:</strong> MAJUSCULES uniquement (A-Z, 0-9, _)</li>
+                            <li>📊 <strong>Valeur:</strong> Entre 0.01 et 100</li>
+                            <li>📅 <strong>Dates:</strong> Début ≥ aujourd'hui, Fin > Début</li>
+                            <li>🛍️ <strong>Produits:</strong> Au moins 1 si non appliqué à tous</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ path('admin_promotion_index') }}" class="btn btn-outline-light btn-lg" style="border: 2px solid #7c3aed; color: #facc15; border-radius: 8px; transition: all 0.3s;">
+                            <span style="color: #facc15;">🔙</span> Retour
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg px-5" style="background: linear-gradient(45deg, #10b981, #059669); border: none; border-radius: 8px; font-weight: bold; transition: all 0.3s;">
+                            <span style="color: white;">💾</span> Créer la promotion
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, .form-select {
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    background: rgba(124, 58, 237, 0.2) !important;
+    border-color: #facc15 !important;
+    box-shadow: 0 0 0 0.25rem rgba(250, 204, 21, 0.25) !important;
+    color: white !important;
+}
+
+.form-control::placeholder {
+    color: rgba(255,255,255,0.5) !important;
+}
+
+.form-label {
+    margin-bottom: 0.5rem;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+}
+
+.btn-outline-light:hover {
+    transform: translateY(-2px);
+    background: rgba(124, 58, 237, 0.2);
+    border-color: #facc15;
+}
+
+/* Styles pour les erreurs de validation */
+.invalid-feedback {
+    display: block;
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    font-weight: bold;
+    background: rgba(239, 68, 68, 0.1);
+    padding: 5px 10px;
+    border-radius: 5px;
+    border-left: 3px solid #ef4444;
+}
+
+.form-control.is-invalid, .form-select.is-invalid {
+    border-color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.input-group-text {
+    background: rgba(124, 58, 237, 0.2);
+    border: 2px solid #7c3aed;
+    color: #facc15;
+}
+
+/* Styles pour les champs valides */
+.form-control.is-valid, .form-select.is-valid {
+    border-color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+}
+
+.valid-feedback {
+    display: block;
+    color: #10b981;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    font-weight: bold;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 5px 10px;
+    border-radius: 5px;
+    border-left: 3px solid #10b981;
+}
+
+/* Animation pour les alertes */
+.alert {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gérer l'affichage/masquage de la sélection de produits
+    const applyToAllField = document.querySelector('#promotion_applyToAllProducts');
+    const productSelection = document.getElementById('product-selection');
+    const valueSuffix = document.getElementById('value-suffix');
+    const typeField = document.querySelector('#promotion_type');
+    
+    function toggleProductSelection() {
+        if (applyToAllField && applyToAllField.value === '0') {
+            productSelection.style.display = 'block';
+            productSelection.style.animation = 'slideIn 0.3s ease-out';
+        } else {
+            productSelection.style.display = 'none';
+        }
+    }
+    
+    function updateValueSuffix() {
+        if (typeField && valueSuffix) {
+            if (typeField.value === 'percentage') {
+                valueSuffix.textContent = '%';
+            } else if (typeField.value === 'fixed_amount') {
+                valueSuffix.textContent = '€';
+            } else {
+                valueSuffix.textContent = '';
+            }
+        }
+    }
+    
+    if (applyToAllField) {
+        applyToAllField.addEventListener('change', toggleProductSelection);
+        toggleProductSelection();
+    }
+    
+    if (typeField) {
+        typeField.addEventListener('change', updateValueSuffix);
+        updateValueSuffix();
+    }
+    
+    // Validation côté client avec feedback visuel
+    const form = document.querySelector('.needs-validation');
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+        
+        input.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                validateField(this);
+            }
+        });
+    });
+    
+    function validateField(field) {
+        field.classList.remove('is-valid', 'is-invalid');
+        
+        if (field.hasAttribute('required') && !field.value.trim()) {
+            field.classList.add('is-invalid');
+            return false;
+        }
+        
+        // Validation spécifique pour certains champs
+        if (field.id === 'promotion_code') {
+            const codeRegex = /^[A-Z0-9_]+$/;
+            if (!codeRegex.test(field.value)) {
+                field.classList.add('is-invalid');
+                return false;
+            }
+        }
+        
+        if (field.id === 'promotion_value') {
+            const value = parseFloat(field.value);
+            if (isNaN(value) || value < 0.01 || value > 100) {
+                field.classList.add('is-invalid');
+                return false;
+            }
+        }
+        
+        field.classList.add('is-valid');
+        return true;
+    }
+    
+    form.addEventListener('submit', function(event) {
+        let isValid = true;
+        inputs.forEach(input => {
+            if (!validateField(input)) {
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Faire défiler vers le premier champ invalide
+            const firstInvalid = form.querySelector('.is-invalid');
+            if (firstInvalid) {
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstInvalid.focus();
+            }
+        }
+        
+        form.classList.add('was-validated');
+    }, false);
+});
+</script>
+{% endblock %}

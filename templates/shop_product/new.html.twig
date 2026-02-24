@@ -12,7 +12,23 @@
     {{ form_row(form.type) }}
     {{ form_row(form.game) }}
     {{ form_row(form.image) }}
+    
     {{ form_row(form.imagesFiles) }}
+    {% if form.type.vars.value == 'merch' %}
+    {{ form_row(form.sizes) }}
+    {% endif %}
+    
+    {# Affichage des erreurs globales #}
+    {% if form.vars.errors|length > 0 %}
+        <div class="alert alert-danger">
+            <ul>
+                {% for error in form.vars.errors %}
+                    <li>{{ error.message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    
     <button class="btn btn-primary">Ajouter</button>
 {{ form_end(form) }}
 

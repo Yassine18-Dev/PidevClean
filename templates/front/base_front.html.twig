@@ -53,7 +53,9 @@
     <a href="{{ path('ui_forgot_password') }}">Forgot</a>
     <a class="nav-link" href="/shop/merch">Shop</a>
     <a href="{{ path('ui_logout') }}">Logout</a>
+    {% if is_granted('ROLE_ADMIN') %}
     <a href="{{ path('ui_admin') }}">Admin</a>
+    {% endif %}
     
         <button id="cart-btn" class="cart-btn">
         <i class="fa-solid fa-cart-shopping"></i>
@@ -87,6 +89,7 @@
 {% block javascripts %}
   <script src="{{ asset('js/cart.js') }}"></script>
   <script src="{{ asset('js/payment.js') }}"></script>
+  <script src="{{ asset('js/search.js') }}"></script>
 {% endblock %}
 
 

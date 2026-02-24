@@ -79,15 +79,357 @@
         {% if shop_product.game %}
             <p><strong>Jeu :</strong> {{ shop_product.game.name }}</p>
         {% endif %}
+        
         <p><strong>Type :</strong> {{ shop_product.type|capitalize }}</p>
+        
+        {# ===== TAILLES DISPONIBLES (POUR MERCH) ===== #}
+        {% if shop_product.type == 'merch' and shop_product.sizes|length > 0 %}
+            <div style="margin: 15px 0;">
+                <p><strong>Tailles disponibles :</strong></p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+                    {% for size in shop_product.sizes %}
+                        <label style="
+                            display: inline-block;
+                            padding: 8px 12px;
+                            border: 2px solid #7c3aed;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            background: white;
+                            transition: all 0.2s;
+                        ">
+                            <input type="radio" name="selected_size" value="{{ size.id }}" 
+                                   style="display: none;" required
+                                   onchange="this.closest('label').style.background='#7c3aed'; this.closest('label').style.color='white'; 
+                                            document.querySelectorAll('label').forEach(l => { if(l !== this.closest('label')) { l.style.background='white'; l.style.color='black'; }});">
+                            {{ size.name }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
     </div>
-    <form method="post" action="{{ path('cart_add', {'id': shop_product.id}) }}">
+    <form method="post" action="{{ path('cart_add', {'id': shop_product.id}) }}" 
+          onsubmit="return validateSizeSelection();">
+        {% if shop_product.type == 'merch' and shop_product.sizes|length > 0 %}
+            <input type="hidden" name="selected_size" id="selected_size_hidden">
+        {% endif %}
         <button type="submit" style="width: 100%; background: #7c3aed; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold;">
             🛒 Ajouter
         </button>
     </form>
 </div>
+
+</div>
+
+{# ===== RECOMMANDATIONS IA SOUS LE PRODUIT ===== #}
+<div style="margin-top: 80px; padding: 40px; background: rgba(124, 58, 237, 0.05); border: 1px solid #7c3aed; border-radius: 15px;">
+    <div class="ai-recommendations-header mb-4">
+        <h3 style="color: #facc15; font-size: 1.3rem; margin-bottom: 8px;">
+            🤖 Vous aimerez aussi
+        </h3>
+        <p style="color: #a78bfa; font-size: 1rem;">Recommandations IA basées sur ce produit</p>
+    </div>
+    
+    <div id="ai-product-recommendations">
+        <div class="text-center p-4">
+            <div style="color: #a78bfa; font-size: 2rem;">🤖</div>
+            <p style="color: #a78bafa;">L'IA trouve des produits similaires pour vous...</p>
+        </div>
+    </div>
+</div>
+
+<style>
+/* CSS personnalisé pour les recommandations IA */
+.recommendations-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+.recommendation-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.recommendation-card .card {
+    width: 100%;
+    max-width: 300px;
+    height: 100%;
+    padding: 20px;
+    background: #140b25;
+    border: 1px solid #7c3aed;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.1);
+}
+
+.recommendation-card .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+}
+
+.recommendation-card .card img {
+    width: 100%;
+    height: 150px !important;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.recommendation-card .card h6 {
+    font-size: 0.9rem;
+    font-weight: bold;
+    line-height: 1.3;
+    min-height: 2.6rem;
+    margin-bottom: 10px;
+    text-align: center;
+    color: white;
+}
+
+.recommendation-card .card .price-container {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.recommendation-card .card .price-container .original-price {
+    text-decoration: line-through;
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.recommendation-card .card .price-container .final-price {
+    color: #facc15;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.recommendation-card .card .badge {
+    background: #ef4444;
+    color: white;
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    display: inline-block;
+}
+
+.recommendation-card .card .actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.recommendation-card .card .actions .btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    transition: all 0.3s;
+    border: none;
+    font-weight: 500;
+}
+
+.recommendation-card .card .actions .btn-view {
+    background: #7c3aed;
+    color: white;
+}
+
+.recommendation-card .card .actions .btn-view:hover {
+    background: #6d28d9;
+}
+
+.recommendation-card .card .actions .btn-add {
+    background: #10b981;
+    color: white;
+}
+
+.recommendation-card .card .actions .btn-add:hover {
+    background: #059669;
+}
+
+/* Responsive pour tablettes */
+@media (max-width: 992px) {
+    .recommendations-container {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+    }
+    
+    .recommendation-card .card {
+        max-width: 280px;
+        padding: 15px;
+    }
+    
+    .recommendation-card .card img {
+        height: 130px !important;
+    }
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+    .recommendations-container {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        padding: 15px 0;
+    }
+    
+    .recommendation-card .card {
+        max-width: 260px;
+        padding: 12px;
+    }
+    
+    .recommendation-card .card img {
+        height: 110px !important;
+    }
+    
+    .recommendation-card .card h6 {
+        font-size: 0.85rem;
+        min-height: 2.2rem;
+    }
+    
+    .recommendation-card .card .actions .btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+}
+
+/* Responsive pour petits mobiles */
+@media (max-width: 480px) {
+    .recommendations-container {
+        grid-template-columns: 1fr;
+        max-width: 300px;
+        gap: 15px;
+    }
+    
+    .recommendation-card .card {
+        max-width: 100%;
+        padding: 10px;
+    }
+    
+    .recommendation-card .card img {
+        height: 100px !important;
+    }
+    
+    .recommendation-card .card h6 {
+        font-size: 0.8rem;
+        min-height: 2rem;
+    }
+    
+    .recommendation-card .card .actions {
+        gap: 8px;
+    }
+    
+    .recommendation-card .card .actions .btn {
+        padding: 5px 8px;
+        font-size: 0.7rem;
+    }
+}
+</style>
+
+<script>
+function validateSizeSelection() {
+    {% if shop_product.type == 'merch' and shop_product.sizes|length > 0 %}
+        const selectedSize = document.querySelector('input[name="selected_size"]:checked');
+        if (!selectedSize) {
+            alert('Veuillez sélectionner une taille avant d\'ajouter au panier.');
+            return false;
+        }
+        // Mettre la taille sélectionnée dans le champ caché
+        document.getElementById('selected_size_hidden').value = selectedSize.value;
+    {% endif %}
+    return true;
+}
+
+// Charger les recommandations IA pour ce produit
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🤖️ Début du chargement des recommandations...');
+    loadProductRecommendations();
+});
+
+async function loadProductRecommendations() {
+    const container = document.getElementById('ai-product-recommendations');
+    
+    console.log('🔍 Container trouvé:', container);
+    console.log('📦 ID du produit actuel:', {{ shop_product.id }});
+    
+    try {
+        // Utiliser l'ID du produit actuel pour les recommandations
+        const productId = {{ shop_product.id }};
+        console.log('📡 Appel API pour le produit:', productId);
+        
+        const response = await fetch(`/api/recommendations/product/${productId}`);
+        console.log('📤 Réponse status:', response.status);
+        
+        const data = await response.json();
+        console.log('📊 Données reçues:', data);
+        
+        if (data.success && data.recommendations.length > 0) {
+            console.log('✅ Recommandations trouvées:', data.recommendations.length);
+            renderProductRecommendations(data.recommendations);
+        } else {
+            console.log('❌ Pas de recommandations trouvées');
+            showNoRecommendations();
+        }
+    } catch (error) {
+        console.error('❌ Erreur lors du chargement des recommandations:', error);
+        showNoRecommendations();
+    }
+}
+
+function renderProductRecommendations(recommendations) {
+    const container = document.getElementById('ai-product-recommendations');
+    
+    const recommendationsHTML = recommendations.slice(0, 4).map(product => `
+        <div class="recommendation-card">
+            <div class="card">
+                <div class="text-center">
+                    ${product.image ? 
+                        `<img src="/uploads/shop/${product.image}" alt="${product.name}">` :
+                        `<div style="width: 280px; height: 150px; background: rgba(124, 58, 237, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #a78bfa; font-size: 2rem; margin: 0 auto;">📦</div>`
+                    }
+                </div>
+                <h6>${product.name}</h6>
+                <div class="price-container">
+                    ${product.hasPromotion ? 
+                        `<div class="original-price">${product.price} €</div>
+                         <div class="final-price">${product.finalPrice} €</div>` :
+                        `<div class="final-price">${product.price} €</div>`
+                    }
+                </div>
+                ${product.hasPromotion ? 
+                    `<span class="badge">🔥 ${product.formattedDiscount}</span>` : ''
+                }
+                <div class="actions">
+                    <a href="/shop/product/${product.id}" class="btn btn-view">👁️ Voir</a>
+                    <form method="post" action="/cart/add/${product.id}" style="margin: 0;">
+                        <button type="submit" class="btn btn-add">🛒 Ajouter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = `<div class="recommendations-container">${recommendationsHTML}</div>`;
+}
+
+function showNoRecommendations() {
+    const container = document.getElementById('ai-product-recommendations');
+    container.innerHTML = `
+        <div class="text-center p-4">
+            <div style="color: #a78bfa; font-size: 1.5rem;">📦</div>
+            <p style="color: #a78bfa;">Ajoutez des produits au panier pour voir des recommandations personnalisées</p>
+        </div>
+    `;
+}
+</script>
 {% endblock %}
+
 {% block javascripts %}
     <script src="{{ asset('js/shop-slider.js') }}"></script>
 {% endblock %}      

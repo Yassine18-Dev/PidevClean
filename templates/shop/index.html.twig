@@ -4,9 +4,7 @@
 
 {% block body %}
 
-
-
-{# ====== FILTRES DE TRI ===== #}
+{# ===== FILTRES DE TRI ===== #}
 <div style="margin-bottom: 25px; display: flex; gap: 15px;">
     
     {# Bouton Skins (violet) #}
@@ -54,6 +52,20 @@
    onmouseover="this.style.background='#059669';"
    onmouseout="this.style.background='#10b981';">
     ➕ Ajouter produit
+</a>
+<a href="{{ path('admin_promotion_new') }}"
+   style="
+       padding: 10px 20px;
+       background: #f59e0b;
+       color: white;
+       border-radius: 8px;
+       text-decoration: none;
+       font-weight: bold;
+       transition: background 0.3s;
+   "
+   onmouseover="this.style.background='#d97706';"
+   onmouseout="this.style.background='#f59e0b';">
+    🎯 Créer Promotion
 </a>
 {% endif %}
 </div>
@@ -135,7 +147,36 @@
     {# INFOS PRODUIT #}
     <a href="{{ path('app_shop_product_show', {'id': product.id}) }}" style="text-decoration:none; color:white;">
         <h3 style="font-size: 1.1rem; margin: 10px 0;">{{ product.name }}</h3>
-        <p style="color: #facc15; font-weight: bold; margin: 5px 0;">{{ product.price }} €</p>
+        
+        {# AFFICHAGE DES PRIX AVEC PROMOTION #}
+        <div style="margin: 5px 0;">
+            {% if product.hasActivePromotion() %}
+                {# Prix original barré #}
+                <div style="text-decoration: line-through; color: #888; font-size: 0.9rem;">
+                    {{ product.price }} €
+                </div>
+                {# Prix avec réduction #}
+                <div style="color: #facc15; font-weight: bold; font-size: 1.2rem;">
+                    {{ product.getFinalPrice() }} €
+                </div>
+                {# Badge de réduction #}
+                <div style="
+                    background: linear-gradient(45deg, #ef4444, #dc2626);
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 12px;
+                    font-size: 11px;
+                    font-weight: bold;
+                    display: inline-block;
+                    margin-top: 4px;
+                    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+                ">
+                    🔥 {{ product.getFormattedDiscount() }}
+                </div>
+            {% else %}
+                <p style="color: #facc15; font-weight: bold; margin: 5px 0;">{{ product.price }} €</p>
+            {% endif %}
+        </div>
         {% if product.type == 'merch' %}
     <div class="sizes">
         <strong>Tailles :</strong>
@@ -149,11 +190,13 @@
     </a>
 
     {# BOUTON PANIER #}
-    <form method="post" action="{{ path('cart_add', {'id': product.id}) }}">
-        <button type="submit" style="width: 100%; background: #7c3aed; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-            🛒 Ajouter
-        </button>
-    </form>
+    <div class="d-flex gap-2">
+        <form method="post" action="{{ path('cart_add', {'id': product.id}) }}">
+            <button type="submit" style="flex: 1; background: #7c3aed; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                🛒 Ajouter
+            </button>
+        </form>
+    </div>
 </div>
     {% endfor %}
 </div>
@@ -162,7 +205,7 @@
 
 {% block javascripts %}
 <script src="{{ asset('js/shop-slider.js') }}"></script>
-    {{ parent() }}
+{{ parent() }}
 {% endblock %}
 
 

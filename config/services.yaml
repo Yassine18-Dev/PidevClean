@@ -5,6 +5,10 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     shop_images_directory: '%kernel.project_dir%/public/uploads/shop'
+    # Configuration Elasticsearch
+    elasticsearch_host: '%env(default::ELASTICSEARCH_HOST)%'
+    # Configuration OpenAI
+    openai_api_key: '%env(OPENAI_API_KEY)%'
 
 
 services:
@@ -24,3 +28,14 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    
+    # Service de recherche Elasticsearch
+    App\Service\SearchService:
+        arguments:
+            $em: '@doctrine.orm.entity_manager'
+            $elasticsearchHost: '%elasticsearch_host%'
+
+    # Service AI pour recommandations produits
+    App\Service\AIProductService:
+        arguments:
+            $openaiApiKey: '%openai_api_key%'

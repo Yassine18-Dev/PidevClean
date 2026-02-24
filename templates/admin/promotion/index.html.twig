@@ -1,0 +1,181 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}Gestion des Promotions{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0" style="color: #facc15;">
+                🎯 Gestion des Promotions
+            </h2>
+            <p class="mb-0 text-white-50">
+                Configurez vos promotions marketing
+            </p>
+        </div>
+        <a href="{{ path('admin_promotion_new') }}" class="btn btn-success" style="background: #10b981; border: none; border-radius: 6px;">
+            ➕ Créer une Promotion
+        </a>
+    </div>
+
+    {% if promotions is empty %}
+        <div class="text-center mt-5">
+            <div style="color: #a78bfa; font-size: 3rem;">📋</div>
+            <h3 style="color: white;">Aucune promotion</h3>
+            <p style="color: #a78bfa;">Commencez par créer votre première promotion</p>
+            <a href="{{ path('admin_promotion_new') }}" class="btn btn-outline-primary" style="border-color: #7c3aed; color: #7c3aed;">
+                Créer ma première promotion
+            </a>
+        </div>
+    {% else %}
+        <!-- Statistiques simples -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="text-center p-3" style="background: rgba(124, 58, 237, 0.1); border-radius: 8px;">
+                    <div style="color: #facc15; font-size: 1.5rem; font-weight: bold;">{{ promotions|length }}</div>
+                    <div style="color: #a78bfa;">Total</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-3" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px;">
+                    <div style="color: #10b981; font-size: 1.5rem; font-weight: bold;">{{ promotions|filter(p => p.isActive == true)|length }}</div>
+                    <div style="color: #a78bfa;">Actives</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-3" style="background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
+                    <div style="color: #ef4444; font-size: 1.5rem; font-weight: bold;">{{ promotions|filter(p => p.isActive == false)|length }}</div>
+                    <div style="color: #a78bfa;">Inactives</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des promotions -->
+        <div class="row">
+            {% for promotion in promotions %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card" style="background: #140b25; border: 1px solid #7c3aed; border-radius: 8px;">
+                        <!-- Header simple -->
+                        <div class="p-3 border-bottom" style="border-color: #7c3aed;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="mb-1 text-white">{{ promotion.name }}</h5>
+                                    <small style="color: #a78bfa;">{{ promotion.code }}</small>
+                                </div>
+                                <div>
+                                    <span class="badge" style="
+                                        background: {{ promotion.isActive ? '#10b981' : '#6b7280' }}; 
+                                        color: white; 
+                                        font-size: 0.7rem;
+                                    ">
+                                        {{ promotion.isActive ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3">
+                            <!-- Valeur principale -->
+                            <div class="text-center mb-3">
+                                <div style="color: #facc15; font-size: 1.8rem; font-weight: bold;">
+                                    {{ promotion.getFormattedValue() }}
+                                </div>
+                                <small style="color: #a78bfa;">
+                                    {% if promotion.type == 'percentage' %}
+                                        Pourcentage
+                                    {% elseif promotion.type == 'fixed_amount' %}
+                                        Montant fixe
+                                    {% else %}
+                                        Autre
+                                    {% endif %}
+                                </small>
+                            </div>
+                            
+                            <!-- Informations essentielles -->
+                            <div class="mb-2">
+                                <small style="color: #a78bfa;">Période:</small>
+                                <div class="text-white small">
+                                    {{ promotion.startDate|date('d/m/Y') }} → {{ promotion.endDate|date('d/m/Y') }}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <small style="color: #a78bfa;">Application:</small>
+                                <div>
+                                    {% if promotion.applyToAllProducts %}
+                                        <span class="badge" style="background: rgba(124, 58, 237, 0.2); color: #a78bfa;">
+                                            Tous produits
+                                        </span>
+                                    {% else %}
+                                        <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">
+                                            {{ promotion.products|length }} produits
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Actions -->
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary flex-fill" style="border-color: #7c3aed; color: #7c3aed;" onclick="editPromotion({{ promotion.id }})">
+                                    ✏️
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger flex-fill" style="border-color: #ef4444; color: #ef4444;" onclick="deletePromotion({{ promotion.id }})">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.card {
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.btn-outline-primary:hover {
+    background: rgba(124, 58, 237, 0.1);
+}
+
+.btn-outline-danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+</style>
+
+<script>
+function editPromotion(id) {
+    alert('Fonction de modification à implémenter pour la promotion #' + id);
+}
+
+function deletePromotion(id) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette promotion ?')) {
+        fetch('/admin/promotions/' + id + '/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur lors de la suppression');
+        });
+    }
+}
+</script>
+{% endblock %}

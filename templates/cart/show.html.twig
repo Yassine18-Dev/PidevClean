@@ -1,74 +1,235 @@
-    {% extends 'front/base_front.html.twig' %}
+{% extends 'front/base_front.html.twig' %}
 
-    {% block title %}Mon Panier{% endblock %}
+{% block title %}Mon Panier{% endblock %}
 
-    {% block body %}
-    <div class="cart-page">
-        <h1>🛒 Mon Panier</h1>
+{% block body %}
+<div class="cart-page">
+    <h1>🛒 Mon Panier</h1>
 
-        {% if cart is empty %}
-            <p style="text-align:center;color:#9ca3af;">Votre panier est vide.</p>
-        {% else %}
-            <table>
-                <thead>
+    {% if cart is empty %}
+        <p style="text-align:center;color:#9ca3af;">Votre panier est vide.</p>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Quantité</th>
+                    <th>Prix unitaire</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cartKey, product in products %}
+                    {% set quantity = cart[cartKey] %}
+                    {% set size = sizes[cartKey] ?? null %}
+                    {% set originalPrice = product.price %}
+                    {% set finalPrice = product.getFinalPrice() %}
+                    {% set lineTotalOriginal = originalPrice * quantity %}
+                    {% set lineTotalFinal = finalPrice * quantity %}
                     <tr>
-                        <th>Produit</th>
-                        <th>Quantité</th>
-                        <th>Prix</th>
+                        <td>
+                            {{ product.name }}
+                            {% if size %}
+                                <span class="badge bg-secondary">{{ size.name }}</span>
+                            {% endif %}
+                            {% if product.hasActivePromotion() %}
+                                <span class="badge bg-danger" style="margin-left: 5px;">
+                                    🔥 {{ product.getFormattedDiscount() }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span style="background: #f3f4f6; padding: 8px 12px; border-radius: 6px; font-weight: bold; color: #374151;">
+                                {{ quantity }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if product.hasActivePromotion() %}
+                                <div style="text-decoration: line-through; color: #888; font-size: 0.9rem;">
+                                    {{ originalPrice }} €
+                                </div>
+                                <div style="color: #facc15; font-weight: bold;">
+                                    {{ finalPrice }} €
+                                </div>
+                            {% else %}
+                                {{ originalPrice }} €
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if product.hasActivePromotion() %}
+                                <div style="text-decoration: line-through; color: #888; font-size: 0.9rem;">
+                                    {{ lineTotalOriginal }} €
+                                </div>
+                                <div style="color: #facc15; font-weight: bold;">
+                                    {{ lineTotalFinal }} €
+                                </div>
+                            {% else %}
+                                {{ lineTotalOriginal }} €
+                            {% endif %}
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% for product in products %}
-                        <tr>
-                            <td>{{ product.name }}</td>
-                            <td>{{ cart[product.id] }}</td>
-                            <td>{{ (product.price * cart[product.id])|number_format(2) }} €</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                {% endfor %}
+            </tbody>
+        </table>
 
-            <div class="cart-total">
-                Total : {{ products|reduce((carry, p) => carry + (p.price * cart[p.id]), 0)|number_format(2) }} €
+        {# RÉSUMÉ DES PROMOTIONS #}
+        {% if has_promotions and cart_calculation %}
+            <div style="background: linear-gradient(135deg, #f3f4f6, #e5e7eb); padding: 20px; border-radius: 12px; margin: 20px 0;">
+                <h3 style="color: #1f2937; margin-bottom: 15px;">🎯 Résumé des Promotions</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ef4444;">
+                        <div style="color: #6b7280; font-size: 0.9rem; margin-bottom: 5px;">Total original</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #374151;">
+                            {{ cart_calculation.total_original }} €
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981;">
+                        <div style="color: #6b7280; font-size: 0.9rem; margin-bottom: 5px;">Total avec réduction</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #059669;">
+                            {{ cart_calculation.total_final }} €
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="color: #6b7280; font-size: 0.9rem;">Économie réalisée</div>
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #d97706;">
+                                -{{ cart_calculation.total_discount }} €
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="color: #6b7280; font-size: 0.9rem;">Pourcentage d'économie</div>
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #d97706;">
+                                {{ cart_calculation.savings_percentage }}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {# DÉTAIL DES PROMOTIONS APPLIQUÉES #}
+                {% if cart_calculation.applied_promotions %}
+                    <div style="margin-top: 20px;">
+                        <h4 style="color: #374151; margin-bottom: 10px;">Promotions appliquées :</h4>
+                        {% for promotion in cart_calculation.applied_promotions %}
+                            <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e5e7eb;">
+                                <div style="font-weight: bold; color: #1f2937; margin-bottom: 5px;">
+                                    🎯 {{ promotion.promotion.name }} ({{ promotion.discount }})
+                                </div>
+                                <div style="color: #6b7280; font-size: 0.9rem;">
+                                    {{ promotion.product_count }} produit(s) concerné(s) - Économie : {{ promotion.total_discount }} €
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
-
-            <!-- Bouton ouvrir modal -->
-            <button id="open-payment-modal">💳 Passer commande</button>
-            <input type="hidden" id="csrf_token" value="{{ csrf_token('cart_checkout') }}">
         {% endif %}
-    </div>
 
-    <!-- Modal Paiement -->
-    <div id="payment-modal" class="payment-modal" style="display:none;">
-        <div class="payment-box">
-            <h2>💳 Paiement sécurisé</h2>
-            <p class="payment-sub">Simulation de paiement </p>
-
-            <label>Nom sur la carte</label>
-            <input type="text" placeholder="MOATEZ BEN SALEM">
-
-            <label>Numéro de carte</label>
-            <input type="text" placeholder="4242 4242 4242 4242">
-
-            <div class="payment-row">
-                <div>
-                    <label>Expiration</label>
-                    <input type="text" placeholder="MM/AA">
+        {# TOTAL FINAL #}
+        {% if cart_calculation %}
+            <div style="text-align: right; margin-top: 20px;">
+                <div style="background: #1f2937; color: white; padding: 15px 20px; border-radius: 8px; display: inline-block;">
+                    <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;">Total à payer</div>
+                    <div style="font-size: 1.8rem; font-weight: bold;">
+                        {{ cart_calculation.total_final }} €
+                    </div>
+                    {% if has_promotions %}
+                        <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 5px;">
+                            Vous économisez {{ cart_calculation.total_discount }} € ({{ cart_calculation.savings_percentage }}%)
+                        </div>
+                    {% endif %}
                 </div>
-                <div>
-                    <label>CVC</label>
-                    <input type="text" placeholder="123">
+                
+                {# BOUTON PAYER #}
+                <div style="margin-top: 15px;">
+                    <button id="show-payment-btn" style="
+                        background: linear-gradient(45deg, #10b981, #059669);
+                        color: white;
+                        border: none;
+                        padding: 15px 40px;
+                        border-radius: 8px;
+                        font-size: 1.1rem;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16, 185, 129, 0.4)';" 
+                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(16, 185, 129, 0.3)';">
+                        💳 Payer maintenant
+                    </button>
                 </div>
             </div>
+        {% else %}
+            <div style="text-align: right; margin-top: 20px;">
+                <div style="background: #1f2937; color: white; padding: 15px 20px; border-radius: 8px; display: inline-block;">
+                    <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;">Total à payer</div>
+                    <div style="font-size: 1.8rem; font-weight: bold;">
+                        {% set total = 0 %}
+                        {% for cartKey, product in products %}
+                            {% set quantity = cart[cartKey] %}
+                            {% set total = total + (product.price * quantity) %}
+                        {% endfor %}
+                        {{ total }} €
+                    </div>
+                </div>
+            </div>
+        {% endif %}
 
-            <button id="pay-btn">Payer</button>
-            <button class="close-btn" id="close-payment">Annuler</button>
+        <!-- Modal Paiement -->
+        <div id="payment-modal" class="payment-modal" style="display:none;">
+            <div class="payment-box">
+                <h2>💳 Paiement sécurisé</h2>
+                <p class="payment-sub">Simulation de paiement </p>
+
+                <label>Nom sur la carte</label>
+                <input type="text" placeholder="MOATEZ BEN SALEM">
+
+                <label>Numéro de carte</label>
+                <input type="text" placeholder="4242 4242 4242 4242">
+
+                <div class="payment-row">
+                    <div>
+                        <label>Expiration</label>
+                        <input type="text" placeholder="MM/AA">
+                    </div>
+                    <div>
+                        <label>CVC</label>
+                        <input type="text" placeholder="123">
+                    </div>
+                </div>
+
+                <button id="pay-btn">Payer</button>
+                <button class="close-btn" id="close-payment">Annuler</button>
+            </div>
         </div>
-    </div>
-    {% endblock %}
+    {% endif %}
+</div>
+{% endblock %}
 
-    {% block javascripts %}
-        {{ parent() }}
-        <script src="{{ asset('js/payment.js') }}"></script>
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Gestion du modal de paiement
+        document.getElementById('show-payment-btn').addEventListener('click', function() {
+            document.getElementById('payment-modal').style.display = 'block';
+        });
 
-    {% endblock %}
+        document.getElementById('pay-btn').addEventListener('click', function() {
+            // Simuler le paiement
+            alert('💳 Paiement simulé avec succès !\n\nTotal payé : ' + 
+                (document.querySelector('.cart-page').querySelector('[style*="font-size: 1.8rem; font-weight: bold;"]')?.textContent || 'N/A') + 
+                '\n\nMerci pour votre achat !');
+            
+            // Fermer le modal
+            document.getElementById('payment-modal').style.display = 'none';
+        });
+
+        document.getElementById('close-payment').addEventListener('click', function() {
+            document.getElementById('payment-modal').style.display = 'none';
+        });
+    </script>
+{% endblock %}

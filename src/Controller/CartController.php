@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\ShopProduct;
 use App\Entity\ShopOrder;
 use App\Entity\ShopOrderItem;
+use App\Service\CartPromotionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -15,19 +16,40 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class CartController extends AbstractController
 {
+    private CartPromotionService $cartPromotionService;
+
+    public function __construct(CartPromotionService $cartPromotionService)
+    {
+        $this->cartPromotionService = $cartPromotionService;
+    }
     // Ajouter un produit au panier
     #[Route('/cart/add/{id}', name: 'cart_add', methods: ['POST'])]
-    public function add(ShopProduct $product, SessionInterface $session): Response
+    public function add(ShopProduct $product, SessionInterface $session, Request $request): Response
     {
         $cart = $session->get('cart', []);
+        
+        // Pour les produits merch, on utilise la clé produit_taille
+        $cartKey = (string) $product->getId();
+        if ($product->getType() === 'merch') {
+            $selectedSize = $request->request->get('selected_size');
+            if ($selectedSize) {
+                $cartKey .= '_' . $selectedSize;
+            } else {
+                $this->addFlash('error', 'Veuillez sélectionner une taille pour ce produit.');
+                return $this->redirectToRoute('shop', ['type' => strtolower($product->getType())]);
+            }
+        }
 
-        if (isset($cart[$product->getId()])) {
-            $cart[$product->getId()]++; // incrémente la quantité
+        if (isset($cart[$cartKey])) {
+            $cart[$cartKey]++; // incrémente la quantité
         } else {
-            $cart[$product->getId()] = 1; // première fois
+            $cart[$cartKey] = 1; // première fois
         }
 
         $session->set('cart', $cart);
+        
+        // Debug pour voir ce qui est ajouté au panier
+        error_log('Product added to cart: ' . json_encode(['cartKey' => $cartKey, 'cart' => $cart]));
 
         $this->addFlash('success', $product->getName() . ' ajouté au panier !');
 
@@ -39,18 +61,117 @@ class CartController extends AbstractController
     public function show(SessionInterface $session, EntityManagerInterface $em): Response
     {
         $cart = $session->get('cart', []);
+        
+        // Debug pour voir le contenu du panier
+        error_log('Cart content: ' . json_encode($cart));
+        
         $products = [];
+        $sizes = [];
 
         if (!empty($cart)) {
-            $products = $em->getRepository(ShopProduct::class)->findBy(['id' => array_keys($cart)]);
+            foreach ($cart as $cartKey => $quantity) {
+                // Extraire l'ID du produit et la taille si c'est un merch
+                $parts = explode('_', $cartKey);
+                $productId = (int) $parts[0];
+                $sizeId = isset($parts[1]) ? (int) $parts[1] : null;
+                
+                $product = $em->getRepository(ShopProduct::class)->find($productId);
+                if ($product) {
+                    $products[$cartKey] = $product;
+                    if ($sizeId) {
+                        $size = $em->getRepository(\App\Entity\Size::class)->find($sizeId);
+                        $sizes[$cartKey] = $size;
+                    }
+                }
+            }
+        }
+
+        // Préparer les données pour le service de promotion
+        $cartItemsForPromotion = [];
+        foreach ($cart as $cartKey => $quantity) {
+            if (isset($products[$cartKey])) {
+                $cartItemsForPromotion[$cartKey] = [
+                    'product' => $products[$cartKey],
+                    'quantity' => $quantity
+                ];
+            }
         }
 
         return $this->render('cart/show.html.twig', [
             'cart' => $cart,
             'products' => $products,
+            'sizes' => $sizes,
+            'cart_calculation' => $this->cartPromotionService->calculateCartTotal($cartItemsForPromotion),
+            'has_promotions' => $this->cartPromotionService->hasPromotions($cartItemsForPromotion)
         ]);
+    }
 
+    // API JSON pour le panier (utilisé par le JavaScript)
+    #[Route('/cart/json', name: 'cart_json', methods: ['GET'])]
+    public function cartJson(SessionInterface $session, EntityManagerInterface $em): JsonResponse
+    {
+        $cart = $session->get('cart', []);
+        $products = [];
+        $sizes = [];
+        $total = 0;
+        $count = 0;
 
+        if (!empty($cart)) {
+            foreach ($cart as $cartKey => $quantity) {
+                // Extraire l'ID du produit et la taille si c'est un merch
+                $parts = explode('_', $cartKey);
+                $productId = (int) $parts[0];
+                $sizeId = isset($parts[1]) ? (int) $parts[1] : null;
+                
+                $product = $em->getRepository(\App\Entity\ShopProduct::class)->find($productId);
+                if ($product) {
+                    $itemTotal = $product->getPrice() * $quantity;
+                    $total += $itemTotal;
+                    $count += $quantity;
+                    
+                    $products[] = [
+                        'id' => $productId,
+                        'name' => $product->getName(),
+                        'price' => $product->getPrice(),
+                        'quantity' => $quantity,
+                        'total' => $itemTotal,
+                        'image' => $product->getImage()
+                    ];
+                    
+                    if ($sizeId) {
+                        $size = $em->getRepository(\App\Entity\Size::class)->find($sizeId);
+                        if ($size) {
+                            $sizes[$cartKey] = $size;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $this->json([
+            'items' => $products,
+            'total' => round($total, 2),
+            'count' => $count,
+            'sizes' => $sizes
+        ]);
+    }
+
+    // Mettre à jour la quantité d'un produit dans le panier
+    #[Route('/cart/update/{cartKey}', name: 'cart_update', methods: ['POST'])]
+    public function update(string $cartKey, Request $request, SessionInterface $session, EntityManagerInterface $em): JsonResponse
+    {
+        $cart = $session->get('cart', []);
+        $quantity = $request->request->get('quantity', 1);
+        
+        if ($quantity > 0) {
+            $cart[$cartKey] = $quantity;
+        } else {
+            unset($cart[$cartKey]);
+        }
+        
+        $session->set('cart', $cart);
+        
+        return $this->json(['success' => true, 'quantity' => $quantity]);
     }
 
     // Créer la commande et simuler le paiement
@@ -77,7 +198,11 @@ public function checkout(SessionInterface $session, EntityManagerInterface $em):
         $em->persist($order);
 
         $total = 0;
-        foreach ($cart as $productId => $quantity) {
+        foreach ($cart as $cartKey => $quantity) {
+            $parts = explode('_', $cartKey);
+            $productId = (int) $parts[0];
+            $sizeId = isset($parts[1]) ? (int) $parts[1] : null;
+            
             $product = $em->getRepository(ShopProduct::class)->find($productId);
             if (!$product) continue;
 
@@ -86,6 +211,14 @@ public function checkout(SessionInterface $session, EntityManagerInterface $em):
             $orderItem->setProduct($product);
             $orderItem->setQuantity($quantity);
             $orderItem->setPrice($product->getPrice());
+            
+            // Ajouter la taille si c'est un merch
+            if ($sizeId) {
+                $size = $em->getRepository(\App\Entity\Size::class)->find($sizeId);
+                if ($size) {
+                    $orderItem->setSize($size);
+                }
+            }
 
             $em->persist($orderItem);
             $total += $product->getPrice() * $quantity;
@@ -107,39 +240,9 @@ public function checkout(SessionInterface $session, EntityManagerInterface $em):
         return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
     }
 }
-    #[Route('/cart/json', name: 'cart_json')]
-public function cartJson(SessionInterface $session, EntityManagerInterface $em): JsonResponse
-{
-    $cart = $session->get('cart', []);
-    $items = [];
-    $total = 0;
-
-    if (!empty($cart)) {
-        $products = $em->getRepository(ShopProduct::class)->findBy(['id' => array_keys($cart)]);
-        foreach ($products as $product) {
-            $quantity = $cart[$product->getId()];
-            $items[] = [
-                'id' => $product->getId(),
-                'name' => $product->getName(),
-                'price' => $product->getPrice() * $quantity,
-                'quantity' => $quantity
-            ];
-            $total += $product->getPrice() * $quantity;
-        }
-    }
-
-    $count = array_sum($cart);
-
-    return $this->json([   // <--- ici, on peut appeler AbstractController::json
-        'items' => $items,
-        'total' => $total,
-        'count' => $count
-    ]);
-}
 #[Route('/cart/remove/{id}', name: 'cart_remove', methods: ['POST'])]
 public function remove($id, SessionInterface $session, EntityManagerInterface $em): JsonResponse
 {
-    $id = (int) $id; // convertit la chaîne en entier
     $cart = $session->get('cart', []);
 
     if (isset($cart[$id])) {
@@ -151,9 +254,14 @@ public function remove($id, SessionInterface $session, EntityManagerInterface $e
     $count = array_sum($cart);
     $total = 0;
     if (!empty($cart)) {
-        $products = $em->getRepository(ShopProduct::class)->findBy(['id' => array_keys($cart)]);
-        foreach ($products as $product) {
-            $total += $product->getPrice() * $cart[$product->getId()];
+        foreach ($cart as $cartKey => $quantity) {
+            $parts = explode('_', $cartKey);
+            $productId = (int) $parts[0];
+            
+            $product = $em->getRepository(ShopProduct::class)->find($productId);
+            if ($product) {
+                $total += $product->getPrice() * $quantity;
+            }
         }
     }
 
@@ -198,7 +306,11 @@ public function createTempOrder(SessionInterface $session, EntityManagerInterfac
     $em->persist($order);
 
     $total = 0;
-    foreach ($cart as $productId => $quantity) {
+    foreach ($cart as $cartKey => $quantity) {
+        $parts = explode('_', $cartKey);
+        $productId = (int) $parts[0];
+        $sizeId = isset($parts[1]) ? (int) $parts[1] : null;
+        
         $product = $em->getRepository(ShopProduct::class)->find($productId);
         if (!$product) continue;
 
@@ -207,6 +319,14 @@ public function createTempOrder(SessionInterface $session, EntityManagerInterfac
         $orderItem->setProduct($product);
         $orderItem->setQuantity($quantity);
         $orderItem->setPrice($product->getPrice());
+        
+        // Ajouter la taille si c'est un merch
+        if ($sizeId) {
+            $size = $em->getRepository(\App\Entity\Size::class)->find($sizeId);
+            if ($size) {
+                // Vous pourriez ajouter une relation size dans ShopOrderItem si nécessaire
+            }
+        }
         $em->persist($orderItem);
 
         $total += $product->getPrice() * $quantity;
