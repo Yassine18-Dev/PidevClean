@@ -379,7 +379,7 @@ class SearchService
                     'type' => $product->getType(),
                     'price' => $product->getPrice(),
                     'image' => $product->getImage(),
-                    'isActive' => $product->isActive(),
+                    'isActive' => $product->getIsActive(),
                     'game' => $product->getGame() ? [
                         'id' => $product->getGame()->getId(),
                         'name' => $product->getGame()->getName()
