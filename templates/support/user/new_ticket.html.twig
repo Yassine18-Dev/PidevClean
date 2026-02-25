@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>New Ticket • ArenaMind Support</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ asset('css/support.css') }}">
+</head>
+<body class="support-body">
+
+  <nav class="user-nav">
+    <a href="{{ path('support_role_select') }}" class="user-nav-logo">🛡️ ArenaMind Support</a>
+    <div class="user-nav-links">
+      <a href="{{ path('support_user_tickets') }}" class="user-nav-link">🎫 My Tickets</a>
+      <a href="{{ path('support_user_ticket_new') }}" class="user-nav-link active">➕ New Ticket</a>
+      <a href="{{ path('support_chatbot') }}" class="user-nav-link">🤖 AI Chat</a>
+    </div>
+  </nav>
+
+  <div class="user-content">
+    <div class="page-header">
+      <h1>➕ Create New Ticket</h1>
+      <p class="page-subtitle">Describe your issue and we'll assign it to the right team</p>
+    </div>
+
+    {% for msg in app.flashes('error') %}
+      <div class="flash flash-error">❌ {{ msg }}</div>
+    {% endfor %}
+
+    <div class="form-card">
+      {{ form_start(form, {'attr': {'class': 'ticket-form'}}) }}
+
+      <div class="form-group">
+        <label class="form-label">📌 Subject</label>
+        {{ form_widget(form.subject) }}
+        {{ form_errors(form.subject) }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">📁 Category</label>
+        {{ form_widget(form.category) }}
+        {{ form_errors(form.category) }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">📝 Description</label>
+        {{ form_widget(form.description) }}
+        {{ form_errors(form.description) }}
+        <small class="form-hint">Be as detailed as possible — our AI will automatically evaluate the priority.</small>
+      </div>
+
+      <div class="priority-preview" id="priorityPreview" style="display:none;">
+        <span class="priority-preview-label">🎯 Priority Preview:</span>
+        <span class="priority-badge" id="priorityBadge">-</span>
+      </div>
+
+      <button type="submit" class="btn-submit">🚀 Submit Ticket</button>
+      {{ form_end(form) }}
+    </div>
+
+    <div class="form-tip">
+      <h4>💡 Quick Tip</h4>
+      <p>Before creating a ticket, try our <a href="{{ path('support_chatbot') }}">AI Chat Assistant</a> — it might solve your issue instantly!</p>
+    </div>
+  </div>
+
+</body>
+</html>

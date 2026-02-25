@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Support Admin{% endblock %} • ArenaMind</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ asset('css/support.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body class="support-body">
+
+  {# ═══ SIDEBAR ═══ #}
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-logo">🛡️</span>
+      <span class="sidebar-title">ArenaMind<br><small>Support Admin</small></span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ path('support_admin_dashboard') }}" class="sidebar-link {% if app.request.get('_route') == 'support_admin_dashboard' %}active{% endif %}">
+        <span class="sidebar-icon">📊</span> Dashboard
+      </a>
+      <a href="{{ path('support_admin_tickets') }}" class="sidebar-link {% if app.request.get('_route') starts with 'support_admin_ticket' %}active{% endif %}">
+        <span class="sidebar-icon">🎫</span> Tickets
+      </a>
+      <a href="{{ path('support_admin_analytics') }}" class="sidebar-link {% if app.request.get('_route') == 'support_admin_analytics' %}active{% endif %}">
+        <span class="sidebar-icon">📈</span> Analytics
+      </a>
+      <a href="{{ path('support_admin_categories') }}" class="sidebar-link {% if app.request.get('_route') == 'support_admin_categories' %}active{% endif %}">
+        <span class="sidebar-icon">📁</span> Categories
+      </a>
+      <div class="sidebar-divider"></div>
+      <a href="{{ path('support_role_select') }}" class="sidebar-link">
+        <span class="sidebar-icon">↩️</span> Back to Hub
+      </a>
+      <a href="{{ path('ui_admin') }}" class="sidebar-link">
+        <span class="sidebar-icon">⚙️</span> Main Admin
+      </a>
+    </nav>
+  </aside>
+
+  {# ═══ MAIN CONTENT ═══ #}
+  <main class="main-content">
+    <header class="topbar">
+      <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('collapsed')">☰</button>
+      <div class="topbar-right">
+        <span class="topbar-user">👤 {{ app.user ? app.user.username : 'Admin' }}</span>
+      </div>
+    </header>
+
+    <div class="content-area">
+      {% for msg in app.flashes('success') %}
+        <div class="flash flash-success">✅ {{ msg }}</div>
+      {% endfor %}
+      {% for msg in app.flashes('error') %}
+        <div class="flash flash-error">❌ {{ msg }}</div>
+      {% endfor %}
+
+      {% block body %}{% endblock %}
+    </div>
+  </main>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

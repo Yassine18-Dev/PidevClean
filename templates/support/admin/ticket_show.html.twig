@@ -1,0 +1,82 @@
+{% extends 'support/base_support_admin.html.twig' %}
+{% block title %}Ticket #{{ ticket.id }}{% endblock %}
+
+{% block body %}
+<div class="page-header">
+  <a href="{{ path('support_admin_tickets') }}" class="back-link">← Back to Tickets</a>
+  <h1>🎫 Ticket #{{ ticket.id }}</h1>
+</div>
+
+<div class="ticket-detail-grid">
+  {# ═══ TICKET INFO ═══ #}
+  <div class="detail-card">
+    <h3 class="detail-title">{{ ticket.subject }}</h3>
+    <div class="detail-meta">
+      <span class="status-badge status-{{ ticket.status }}">{{ ticket.statusLabel }}</span>
+      <span class="priority-badge priority-{{ ticket.priority }}">{{ ticket.priorityLabel }}</span>
+      <span class="category-badge" style="border-color:{{ ticket.category.color }}">{{ ticket.category.icon }} {{ ticket.category.name }}</span>
+    </div>
+    <div class="detail-info-grid">
+      <div class="info-item"><strong>Submitter:</strong> {{ ticket.submitter.username }} ({{ ticket.submitter.email }})</div>
+      <div class="info-item"><strong>Created:</strong> {{ ticket.createdAt|date('M d, Y H:i') }}</div>
+      <div class="info-item"><strong>Updated:</strong> {{ ticket.updatedAt ? ticket.updatedAt|date('M d, Y H:i') : 'Not yet' }}</div>
+    </div>
+    <div class="detail-description">
+      <h4>Description</h4>
+      <p>{{ ticket.description|nl2br }}</p>
+    </div>
+  </div>
+
+  {# ═══ ACTIONS PANEL ═══ #}
+  <div class="actions-panel">
+    {# Workflow Transitions #}
+    <div class="panel-section">
+      <h4>🔄 Status Transitions</h4>
+      {% if transitions|length > 0 %}
+        {% for t in transitions %}
+          <form method="POST" action="{{ path('support_admin_ticket_transition', {id: ticket.id, transition: t.name}) }}" style="display:inline-block; margin:4px 0;">
+            <button type="submit" class="btn-transition btn-transition--{{ t.name }}">
+              {% if t.name == 'start_progress' %}▶️ Start Progress
+              {% elseif t.name == 'resolve' %}✅ Resolve
+              {% elseif t.name == 'reject_from_pending' or t.name == 'reject_from_progress' %}❌ Reject
+              {% elseif t.name == 'reopen' %}🔄 Reopen
+              {% else %}{{ t.name }}
+              {% endif %}
+            </button>
+          </form>
+        {% endfor %}
+      {% else %}
+        <p class="no-transitions">No transitions available</p>
+      {% endif %}
+    </div>
+
+    {# Admin Notes #}
+    <div class="panel-section">
+      <h4>📝 Admin Notes</h4>
+      <form method="POST" action="{{ path('support_admin_ticket_show', {id: ticket.id}) }}">
+        <textarea name="admin_notes" rows="5" class="admin-notes-input" placeholder="Add internal notes...">{{ ticket.adminNotes }}</textarea>
+        <button type="submit" class="btn-save-notes">💾 Save Notes</button>
+      </form>
+    </div>
+
+    {# Ticket Timeline #}
+    <div class="panel-section">
+      <h4>📍 Lifecycle</h4>
+      <div class="lifecycle-track">
+        <div class="lifecycle-step {{ ticket.status == 'pending' ? 'lifecycle-active' : 'lifecycle-done' }}">
+          <span class="lifecycle-dot"></span> Pending
+        </div>
+        <div class="lifecycle-step {{ ticket.status == 'in_progress' ? 'lifecycle-active' : (ticket.status in ['resolved','rejected'] ? 'lifecycle-done' : '') }}">
+          <span class="lifecycle-dot"></span> In Progress
+        </div>
+        <div class="lifecycle-step {{ ticket.status == 'resolved' ? 'lifecycle-active' : '' }}">
+          <span class="lifecycle-dot"></span> Resolved
+        </div>
+        <div class="lifecycle-step {{ ticket.status == 'rejected' ? 'lifecycle-active lifecycle-rejected' : '' }}">
+          <span class="lifecycle-dot"></span> Rejected
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ArenaMind • Support Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ asset('css/support.css') }}">
+</head>
+<body class="support-body role-select-body">
+
+  <div class="role-select-container">
+    <div class="role-header">
+      <div class="role-logo">🛡️ ArenaMind</div>
+      <h1 class="role-title">Support Center</h1>
+      <p class="role-subtitle">Select your portal to get started</p>
+    </div>
+
+    <div class="role-cards">
+      {# ═══ USER PORTAL ═══ #}
+      <a href="{{ path('support_user_tickets') }}" class="role-card role-card--user">
+        <div class="role-card-glow"></div>
+        <div class="role-card-icon">🎮</div>
+        <h2 class="role-card-title">User Support</h2>
+        <p class="role-card-desc">Submit tickets, track status, and chat with our AI assistant for instant help.</p>
+        <div class="role-card-features">
+          <span>🎫 Submit Tickets</span>
+          <span>📊 Track Status</span>
+          <span>🤖 AI Chat</span>
+        </div>
+        <div class="role-card-arrow">→</div>
+      </a>
+
+      {# ═══ ADMIN PORTAL ═══ #}
+      <a href="{{ path('support_admin_dashboard') }}" class="role-card role-card--admin">
+        <div class="role-card-glow"></div>
+        <div class="role-card-icon">⚙️</div>
+        <h2 class="role-card-title">Admin Panel</h2>
+        <p class="role-card-desc">Manage tickets, view analytics, and oversee the complete support lifecycle.</p>
+        <div class="role-card-features">
+          <span>📊 Dashboard</span>
+          <span>🎫 Manage</span>
+          <span>📈 Analytics</span>
+        </div>
+        <div class="role-card-arrow">→</div>
+      </a>
+    </div>
+
+    <div class="role-footer">
+      <a href="{{ path('ui_profile') }}" class="role-back-link">← Back to Profile</a>
+    </div>
+  </div>
+
+</body>
+</html>
