@@ -1,0 +1,52 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}ArenaMind • Games{% endblock %}
+
+{% block body %}
+<style>
+  .section-header{margin-bottom:22px;}
+  .section-header h1{font-size:26px;margin:0 0 6px;color:var(--purple);}
+  .section-header p{color:var(--muted);font-size:13px;margin:0;}
+  .game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-bottom:28px;}
+  .game-card{background:rgba(11,15,46,.55);border:1px solid rgba(49,46,129,.55);border-radius:16px;padding:20px;transition:transform .15s,border-color .2s;}
+  .game-card:hover{transform:translateY(-3px);border-color:var(--purple);}
+  .game-card h3{margin:0 0 8px;font-size:18px;}
+  .game-card .info{color:var(--muted);font-size:13px;margin-bottom:10px;}
+  .game-tags{display:flex;gap:6px;flex-wrap:wrap;}
+  .game-tags span{padding:5px 10px;border-radius:999px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);font-size:11px;font-weight:700;color:#c4b5fd;}
+  .manage-bar{display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:16px;border-top:1px solid rgba(49,46,129,.35);gap:10px;flex-wrap:wrap;}
+  .manage-bar a.btn-manage{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:14px;text-decoration:none;font-weight:900;font-size:14px;color:#fff;background:linear-gradient(135deg,#3b82f6,#22d3ee);border:none;transition:transform .1s;}
+  .manage-bar a.btn-manage:hover{transform:translateY(-2px);}
+  .manage-bar a.btn-explore{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:14px;text-decoration:none;font-weight:900;font-size:14px;color:#fff;background:linear-gradient(135deg,#7C3AED,#a855f7);border:none;transition:transform .1s;}
+  .manage-bar a.btn-explore:hover{transform:translateY(-2px);}
+  .back-link{color:var(--muted);text-decoration:none;font-size:13px;font-weight:700;}
+  .back-link:hover{color:#fff;}
+</style>
+
+<div class="section-header">
+  <h1>🎮 Featured Games</h1>
+  <p>Official links + esports competitions.</p>
+</div>
+
+<div class="game-grid">
+  {% for game in games %}
+    <div class="game-card">
+      <h3>{{ game.name }}</h3>
+      <div class="info">Max {{ game.maxPlayers }} joueurs</div>
+      <div class="game-tags">
+        <span>Official</span>
+        <span>ArenaMind Events</span>
+      </div>
+    </div>
+  {% else %}
+    <p style="color:var(--muted);">Aucun jeu disponible pour le moment.</p>
+  {% endfor %}
+</div>
+
+<div class="manage-bar">
+  <a class="back-link" href="{{ path('ui_home') }}">← Retour à l'accueil</a>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <a class="btn-explore" href="{{ path('app_game_explore') }}">🌐 Explore Games</a>
+    <a class="btn-manage" href="{{ path('app_game_index') }}">⚙️ Manage Games</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,38 +1,112 @@
 {% extends 'front/base_front.html.twig' %}
-{% block title %}Tournament{% endblock %}
+
+{% block title %}ArenaMind • Tournament Details{% endblock %}
 
 {% block body %}
-{% include '_ui/am_styles.html.twig' %}
+<section class="section">
+  <div class="panel am-wrap">
 
-<div class="am-page">
-  <div class="am-shell">
-    <div class="am-card">
-      <div class="am-card__header">
-        <div>
-          <h1 class="am-title">Tournament #{{ tournament.id }}</h1>
-          <div class="am-subtitle">Détails du tournoi.</div>
-        </div>
-        <div class="am-actions">
-          <a class="am-btn" href="{{ path('am_tournament_index') }}">⬅️ Back</a>
-          <a class="am-btn am-btn--primary" href="{{ path('am_tournament_edit', {'id': tournament.id}) }}">✏️ Edit</a>
-        </div>
+    <div class="am-head">
+      <div>
+        <div class="am-kicker">👁 Détails • Tournoi #{{ tournament.id }}</div>
+        <h1 class="am-title">{{ tournament.name }}</h1>
       </div>
-      <div class="am-card__body">
-        <table class="am-table">
-          <tbody>
-            <tr><th>Name</th><td>{{ tournament.name }}</td></tr>
-            <tr><th>Game</th><td>{{ tournament.game ? tournament.game.name : '—' }}</td></tr>
-            <tr><th>Status</th><td>{{ tournament.status }}</td></tr>
-            <tr><th>Start</th><td>{{ tournament.startAt|date('Y-m-d H:i') }}</td></tr>
-            <tr><th>Check-in</th><td>{{ tournament.checkInAt ? tournament.checkInAt|date('Y-m-d H:i') : '—' }}</td></tr>
-            <tr><th>Slots</th><td>{{ tournament.slots }}</td></tr>
-            <tr><th>Format</th><td>{{ tournament.format }}</td></tr>
-            <tr><th>Prize</th><td>{{ tournament.prize }}</td></tr>
-            <tr><th>Rules</th><td>{{ tournament.rules }}</td></tr>
-          </tbody>
-        </table>
+
+      <div class="am-head-actions">
+        <a class="am-btn am-btn-ghost" href="{{ path('am_tournament_index') }}">⬅ Back</a>
       </div>
     </div>
+
+    <div class="am-cards">
+      <div class="am-card">
+        <div class="am-card-label">Game</div>
+        <div class="am-card-value">
+          {% if tournament.game %}
+            <div class="am-game">
+              {% if tournament.game.imageUrl is defined and tournament.game.imageUrl %}
+                <img class="am-game-img" src="{{ tournament.game.imageUrl }}" alt="{{ tournament.game.name }}" loading="lazy">
+              {% endif %}
+              <span>{{ tournament.game.name }}</span>
+            </div>
+          {% else %}
+            —
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="am-card">
+        <div class="am-card-label">Start</div>
+        <div class="am-card-value">{{ tournament.startAt ? tournament.startAt|date('Y-m-d H:i') : '—' }}</div>
+      </div>
+
+      <div class="am-card">
+        <div class="am-card-label">Check-in</div>
+        <div class="am-card-value">{{ tournament.checkInAt ? tournament.checkInAt|date('Y-m-d H:i') : '—' }}</div>
+      </div>
+
+      <div class="am-card">
+        <div class="am-card-label">Slots</div>
+        <div class="am-card-value">{{ tournament.slots }}</div>
+      </div>
+
+      <div class="am-card">
+        <div class="am-card-label">Format</div>
+        <div class="am-card-value">{{ tournament.format }}</div>
+      </div>
+
+      <div class="am-card">
+        <div class="am-card-label">Prize</div>
+        <div class="am-card-value">{{ tournament.prize }}</div>
+      </div>
+
+      <div class="am-card" style="grid-column:1/-1;">
+        <div class="am-card-label">Rules</div>
+        <div class="am-card-value">{{ tournament.rules }}</div>
+      </div>
+
+      <div class="am-card">
+        <div class="am-card-label">Status</div>
+        <div class="am-card-value">{{ tournament.status }}</div>
+      </div>
+    </div>
+
+    <div class="am-big-actions">
+      <a class="am-btn am-btn-primary am-btn-block" href="{{ path('am_tournament_edit', {id: tournament.id}) }}">✏️ Edit</a>
+
+      <form method="post" action="{{ path('am_tournament_delete', {id: tournament.id}) }}"
+            onsubmit="return confirm('Supprimer ce tournoi ?');" style="margin:0;">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ tournament.id) }}">
+        <button class="am-btn am-btn-danger am-btn-block" type="submit">🗑 Supprimer</button>
+      </form>
+    </div>
+
   </div>
-</div>
+</section>
+
+<style>
+  .am-wrap{padding:18px;}
+  .am-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
+  .am-kicker{color:#cbd5f5;opacity:.9;font-weight:800;margin-bottom:6px;}
+  .am-title{margin:0;color:#fff;font-size:34px;font-weight:900;}
+  .am-head-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+
+  .am-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;}
+  .am-card{background:rgba(20,24,60,.22);border:1px solid rgba(49,46,129,.25);border-radius:18px;padding:16px;text-align:center;}
+  .am-card-label{color:#cbd5f5;opacity:.8;font-weight:900;letter-spacing:.1em;text-transform:uppercase;font-size:12px;}
+  .am-card-value{margin-top:10px;font-size:20px;font-weight:900;color:#fff;}
+
+  .am-game{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;}
+  .am-game-img{width:44px;height:44px;border-radius:14px;object-fit:cover;border:1px solid rgba(49,46,129,.35);}
+
+  .am-big-actions{margin-top:14px;display:grid;gap:12px;}
+
+  .am-btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 16px;border-radius:999px;font-weight:900;color:#fff;text-decoration:none;border:1px solid transparent;cursor:pointer;transition:.15s;}
+  .am-btn-primary{background:linear-gradient(90deg,var(--purple),var(--blue));}
+  .am-btn-ghost{background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);}
+  .am-btn-danger{border-color:rgba(220,38,38,.55);background:rgba(220,38,38,.10);}
+  .am-btn:hover{opacity:.96;transform:translateY(-1px);}
+  .am-btn-block{width:100%;}
+
+  @media (max-width: 900px){ .am-cards{grid-template-columns:1fr;} }
+</style>
 {% endblock %}

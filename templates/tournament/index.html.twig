@@ -1,55 +1,231 @@
 {% extends 'front/base_front.html.twig' %}
-{% block title %}Tournaments • CRUD{% endblock %}
+
+{% block title %}ArenaMind • Manage Tournaments{% endblock %}
 
 {% block body %}
-{% include '_ui/am_styles.html.twig' %}
+<section class="section">
+  <div class="panel am-wrap">
 
-<div class="am-page">
-  <div class="am-shell">
-    <div class="am-toolbar">
+    <div class="am-head">
       <div>
+        <div class="am-kicker">CRUD • Tournaments</div>
         <h1 class="am-title">Manage Tournaments</h1>
-        <div class="am-subtitle">CRUD du module Tournoi (validation Symfony + messages d'erreur Symfony).</div>
       </div>
-      <div class="am-actions">
-        <a class="am-btn" href="{{ path('am_tournaments') }}">⬅️ Back to Upcoming Tournaments</a>
-        <a class="am-btn am-btn--primary" href="{{ path('am_tournament_new') }}">➕ New Tournament</a>
+
+      <div class="am-head-actions">
+        <a class="am-btn am-btn-ghost" href="{{ path('front_tournaments') }}">⬅ Back</a>
+        <a class="am-btn am-btn-primary" href="{{ path('am_tournament_new') }}">➕ New Tournament</a>
       </div>
     </div>
 
-    <table class="am-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Game</th>
-          <th>Start</th>
-          <th>Slots</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for t in tournaments %}
-          <tr>
-            <td>{{ t.id }}</td>
-            <td>{{ t.name }}</td>
-            <td>{{ t.game ? t.game.name : '—' }}</td>
-            <td>{{ t.startAt|date('Y-m-d H:i') }}</td>
-            <td>{{ t.slots }}</td>
-            <td>{{ t.status }}</td>
-            <td>
-              <a class="am-btn" href="{{ path('am_tournament_show', {'id': t.id}) }}">Show</a>
-              <a class="am-btn" href="{{ path('am_tournament_edit', {'id': t.id}) }}">Edit</a>
-            </td>
-          </tr>
-        {% else %}
-          <tr>
-            <td colspan="7" class="am-muted">Aucun tournoi pour le moment.</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    {# Flash messages #}
+    {% for label, messages in app.flashes %}
+      {% for message in messages %}
+        <div class="am-flash am-flash-{{ label }}">{{ message }}</div>
+      {% endfor %}
+    {% endfor %}
+
+    <div class="am-table">
+      <div class="am-thead">
+        <div class="am-th">ID</div>
+        <div class="am-th">Tournament</div>
+        <div class="am-th">Game</div>
+        <div class="am-th">Start</div>
+        <div class="am-th">Slots</div>
+        <div class="am-th">Status</div>
+        <div class="am-th am-th-right">Actions</div>
+      </div>
+
+      {% for t in tournaments %}
+        <div class="am-tr">
+
+          <div class="am-td">
+            <div class="am-idpill">{{ t.id }}</div>
+          </div>
+
+          <div class="am-td">
+            <div class="am-name">
+              <div class="am-name-main">{{ t.name }}</div>
+              <div class="am-name-sub muted">
+                {{ t.format ?? '—' }} • Prize: {{ t.prize ?? '—' }} • Rules: {{ t.rules ?? '—' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="am-td">
+            {% if t.game %}
+              <div class="am-game">
+                {% if t.game.imageUrl is defined and t.game.imageUrl %}
+                  <img class="am-game-img"
+                       src="{{ t.game.imageUrl }}"
+                       alt="{{ t.game.name }}"
+                       loading="lazy"
+                       onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80';">
+                {% else %}
+                  <div class="am-game-fallback">{{ t.game.name|slice(0,1)|upper }}</div>
+                {% endif %}
+
+                <div class="am-game-text">
+                  <div class="am-game-title">{{ t.game.name }}</div>
+                  <div class="am-game-sub muted">Game</div>
+                </div>
+              </div>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </div>
+
+          <div class="am-td">
+            <span class="am-pill">
+              {{ t.startAt ? t.startAt|date('Y-m-d H:i') : '—' }}
+            </span>
+            {% if t.checkInAt %}
+              <div class="muted" style="margin-top:6px;">Check-in: {{ t.checkInAt|date('H:i') }}</div>
+            {% endif %}
+          </div>
+
+          <div class="am-td">
+            <span class="am-pill">{{ t.slots }}</span>
+          </div>
+
+          <div class="am-td">
+            {% set st = (t.status ?? '')|lower %}
+            <span class="am-status
+              {{ st == 'open' ? 'is-open' : '' }}
+              {{ st in ['closed','finished'] ? 'is-finished' : '' }}
+              {{ st in ['scheduled'] ? 'is-scheduled' : '' }}
+              {{ st in ['upcoming'] ? 'is-upcoming' : '' }}
+            ">
+              {{ t.status ?? 'Upcoming' }}
+            </span>
+          </div>
+
+          <div class="am-td am-actions">
+            <a class="am-action-btn" href="{{ path('am_tournament_show', {id: t.id}) }}">👁 Show</a>
+            <a class="am-action-btn" href="{{ path('am_tournament_edit', {id: t.id}) }}">✏️ Edit</a>
+
+            <form method="post"
+                  action="{{ path('am_tournament_delete', {id: t.id}) }}"
+                  onsubmit="return confirm('Supprimer ce tournoi ?');"
+                  style="display:inline-block;margin:0;">
+              <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ t.id) }}">
+              <button class="am-action-btn am-action-danger" type="submit">🗑 Delete</button>
+            </form>
+          </div>
+
+        </div>
+      {% else %}
+        <div class="am-empty">Aucun tournoi trouvé.</div>
+      {% endfor %}
+    </div>
+
   </div>
-</div>
+</section>
+
+<style>
+  .am-wrap{padding:18px;}
+
+  .am-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
+  .am-kicker{color:#cbd5f5;opacity:.9;font-weight:800;margin-bottom:6px;}
+  .am-title{margin:0;color:#fff;font-size:34px;font-weight:900;}
+  .am-head-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+
+  .am-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:12px 16px;border-radius:16px;font-weight:900;
+    color:#fff;text-decoration:none;border:1px solid transparent;
+    cursor:pointer;white-space:nowrap;transition:.15s transform,.15s opacity;
+  }
+  .am-btn-primary{background:linear-gradient(90deg,var(--purple),var(--blue));}
+  .am-btn-ghost{background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);}
+  .am-btn:hover{opacity:.96;transform:translateY(-1px);}
+
+  .am-flash{margin:10px 0;padding:12px 14px;border-radius:14px;border:1px solid rgba(49,46,129,.35);background:rgba(20,24,60,.35);color:#fff;font-weight:800;}
+  .am-flash-success{border-color:rgba(34,197,94,.35); background:rgba(34,197,94,.12);}
+  .am-flash-danger{border-color:rgba(220,38,38,.35); background:rgba(220,38,38,.12);}
+  .am-flash-warning{border-color:rgba(245,158,11,.35); background:rgba(245,158,11,.12);}
+
+  .am-table{margin-top:14px;border-radius:22px;overflow:hidden;border:1px solid rgba(49,46,129,.35);background:rgba(10,14,40,.35);}
+
+  .am-thead{
+    display:grid;
+    grid-template-columns:110px 1.8fr 1.4fr 1.1fr .8fr 1fr 1.6fr;
+    padding:16px 18px;
+    border-bottom:1px solid rgba(49,46,129,.35);
+    background:rgba(5,8,20,.35);
+  }
+  .am-th{color:#dbeafe;font-weight:900;letter-spacing:.12em;text-transform:uppercase;font-size:12px;}
+  .am-th-right{text-align:right;}
+
+  .am-tr{
+    display:grid;
+    grid-template-columns:110px 1.8fr 1.4fr 1.1fr .8fr 1fr 1.6fr;
+    padding:16px 18px;border-bottom:1px solid rgba(49,46,129,.22);
+    align-items:center;transition:.15s transform,.15s background;
+  }
+  .am-tr:hover{background:rgba(20,24,60,.35);transform:translateY(-1px);}
+
+  .am-td{color:#fff;font-weight:800;}
+  .muted{color:#cbd5f5;opacity:.75;font-weight:700;font-size:12px;}
+
+  .am-idpill{
+    width:86px;text-align:center;padding:14px 10px;border-radius:999px;
+    background:rgba(5,8,20,.35);border:1px solid rgba(49,46,129,.35);
+    font-size:20px;font-weight:900;
+  }
+
+  .am-name-main{font-size:18px;font-weight:900;}
+  .am-name-sub{margin-top:4px;}
+
+  .am-pill{
+    display:inline-block;padding:10px 14px;border-radius:999px;
+    background:rgba(5,8,20,.35);border:1px solid rgba(49,46,129,.35);
+    color:#fff;font-weight:900;text-align:center;min-width:88px;
+  }
+
+  /* ✅ GAME image smaller (like you asked) */
+  .am-game{display:flex;align-items:center;gap:12px;}
+  .am-game-img{
+    width:40px;height:40px;border-radius:14px;object-fit:cover;
+    border:1px solid rgba(49,46,129,.35);
+  }
+  .am-game-fallback{
+    width:40px;height:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+    background:rgba(168,85,247,.18);border:1px solid rgba(168,85,247,.28);font-weight:900;
+  }
+  .am-game-title{font-weight:900;}
+  .am-game-sub{margin-top:2px;}
+
+  .am-status{
+    display:inline-block;padding:10px 14px;border-radius:999px;
+    border:1px solid rgba(49,46,129,.35);background:rgba(5,8,20,.35);
+    font-weight:900;text-align:center;min-width:110px;
+  }
+  .am-status.is-open{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12);}
+  .am-status.is-finished{border-color:rgba(220,38,38,.35);background:rgba(220,38,38,.12);}
+  .am-status.is-scheduled{border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.12);}
+  .am-status.is-upcoming{border-color:rgba(168,85,247,.35);background:rgba(168,85,247,.12);}
+
+  .am-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+  .am-action-btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:10px 14px;border-radius:999px;background:rgba(5,8,20,.35);
+    border:1px solid rgba(49,46,129,.35);color:#fff;text-decoration:none;font-weight:900;
+    transition:.15s transform,.15s opacity;
+  }
+  .am-action-btn:hover{opacity:.96;transform:translateY(-1px);}
+  .am-action-danger{border-color:rgba(220,38,38,.55);background:rgba(220,38,38,.10);}
+
+  .am-empty{padding:18px;color:#cbd5f5;font-weight:800;}
+
+  @media (max-width: 1000px){
+    .am-thead,.am-tr{grid-template-columns:90px 1.6fr 1.3fr 1fr .7fr 1fr 1.4fr;}
+  }
+  @media (max-width: 780px){
+    .am-thead{display:none;}
+    .am-tr{grid-template-columns:1fr;gap:10px;}
+    .am-actions{justify-content:flex-start;}
+    .am-idpill{width:100%;}
+  }
+</style>
 {% endblock %}

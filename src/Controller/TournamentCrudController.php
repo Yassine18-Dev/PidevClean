@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/arenamind/tournaments/manage')]
+#[Route('/tournament')]
 class TournamentCrudController extends AbstractController
 {
     #[Route('/', name: 'am_tournament_index', methods: ['GET'])]
@@ -32,7 +32,7 @@ class TournamentCrudController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($tournament);
             $em->flush();
-            $this->addFlash('success', 'Tournoi créé avec succès.');
+            $this->addFlash('success', 'Tournament créé avec succès.');
             return $this->redirectToRoute('am_tournament_index');
         }
 
@@ -58,7 +58,7 @@ class TournamentCrudController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-            $this->addFlash('success', 'Tournoi mis à jour.');
+            $this->addFlash('success', 'Tournament mis à jour.');
             return $this->redirectToRoute('am_tournament_index');
         }
 
@@ -74,7 +74,7 @@ class TournamentCrudController extends AbstractController
         if ($this->isCsrfTokenValid('delete_tournament_'.$tournament->getId(), (string)$request->request->get('_token'))) {
             $em->remove($tournament);
             $em->flush();
-            $this->addFlash('success', 'Tournoi supprimé.');
+            $this->addFlash('success', 'Tournament supprimé.');
         }
 
         return $this->redirectToRoute('am_tournament_index');

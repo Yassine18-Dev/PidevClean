@@ -1,0 +1,38 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+  <div class="am-form-grid">
+
+    {# Nom du jeu #}
+    <div class="am-form-row">
+      {{ form_label(form.name) }}
+      {{ form_widget(form.name, {'attr': {'class': 'am-input', 'placeholder': 'Ex: Valorant, LoL...'}}) }}
+      {% if form.name.vars.errors|length %}
+        <div class="am-errors">
+          {% for error in form.name.vars.errors %}
+            <div>⚠️ {{ error.message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    {# Max joueurs #}
+    <div class="am-form-row">
+      {{ form_label(form.maxPlayers) }}
+      {{ form_widget(form.maxPlayers, {'attr': {'class': 'am-input', 'placeholder': 'Ex: 10', 'min': '1'}}) }}
+      {% if form.maxPlayers.vars.errors|length %}
+        <div class="am-errors">
+          {% for error in form.maxPlayers.vars.errors %}
+            <div>⚠️ {{ error.message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <div class="am-formActions">
+    <button class="am-btn am-btn--primary" type="submit">{{ button_label|default('Enregistrer') }}</button>
+    <a class="am-btn" href="{{ path('app_game_index') }}">Retour</a>
+  </div>
+
+{{ form_end(form) }}

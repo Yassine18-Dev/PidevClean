@@ -1,0 +1,268 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}ArenaMind • Manage Games{% endblock %}
+
+{% block body %}
+<section class="section">
+  <div class="panel am-wrap">
+
+    {# Header #}
+    <div class="am-top">
+      <div class="am-title">
+        <div class="am-icon">⚙️</div>
+        <div>
+          <h1>Manage Games</h1>
+          <div class="am-sub">CRUD • Recherche & tri • Gestion rapide des jeux ArenaMind</div>
+        </div>
+      </div>
+
+      <div class="am-actions">
+        {# ✅ FIX: front_games n'existe pas -> am_games existe #}
+        <a class="am-btn am-btn-ghost" href="{{ path('am_games') }}">← Back to Games page</a>
+        <a class="am-btn am-btn-primary" href="{{ path('app_game_new') }}">＋ New Game</a>
+        <a class="am-btn am-btn-ghost" href="{{ path('app_game_explore') }}">🌍 Explore Games</a>
+      </div>
+    </div>
+
+    {# Flash messages #}
+    {% for type, messages in app.flashes %}
+      {% for message in messages %}
+        <div class="am-flash {{ type }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endfor %}
+
+    {# Filters (Search / Sort / Dir) #}
+    <form class="am-filters" method="get" action="{{ path('app_game_index') }}">
+      <div class="am-filter">
+        <div class="lbl">Rechercher</div>
+        <input class="in" type="text" name="q" value="{{ q }}" placeholder="Rechercher un jeu..." />
+      </div>
+
+      <div class="am-filter">
+        <div class="lbl">Tri</div>
+        <select class="in" name="sort">
+          <option value="id" {{ sort == 'id' ? 'selected' : '' }}>ID</option>
+          <option value="name" {{ sort == 'name' ? 'selected' : '' }}>Nom</option>
+          <option value="maxPlayers" {{ sort == 'maxPlayers' ? 'selected' : '' }}>Max Players</option>
+        </select>
+      </div>
+
+      <div class="am-filter">
+        <div class="lbl">Ordre</div>
+        <select class="in" name="dir">
+          <option value="asc" {{ dir == 'asc' ? 'selected' : '' }}>ASC</option>
+          <option value="desc" {{ dir == 'desc' ? 'selected' : '' }}>DESC</option>
+        </select>
+      </div>
+
+      <div class="am-filter am-filter-btn">
+        <button class="am-btn am-btn-primary" type="submit">Appliquer</button>
+        <a class="am-reset" href="{{ path('app_game_index') }}">Réinitialiser</a>
+      </div>
+
+      <div class="am-hint">💡 Astuce : “FIFA”, “Valorant”, “LoL”</div>
+    </form>
+
+    {# Table #}
+    <div class="am-table">
+      <div class="am-th">
+        <div class="c-id">ID</div>
+        <div class="c-name">NAME</div>
+        <div class="c-max">MAX PLAYERS</div>
+        <div class="c-act">ACTIONS</div>
+      </div>
+
+      {% for game in games %}
+        <div class="am-tr">
+          <div class="c-id">
+            <div class="pill-id">{{ game.id }}</div>
+          </div>
+
+          <div class="c-name">
+            <div class="name-wrap">
+              <div class="avatar">
+                <img
+                  src="{{ game.imageUrl }}"
+                  alt="{{ game.name }}"
+                  loading="lazy"
+                  onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=200&q=80';"
+                />
+              </div>
+
+              <div class="meta">
+                <div class="nm">{{ game.name }}</div>
+                <div class="sub"><span class="dot"></span> ID #{{ game.id }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="c-max">
+            <div class="pill-max">{{ game.maxPlayers }}</div>
+          </div>
+
+          <div class="c-act">
+            <a class="btn-row show" href="{{ path('app_game_show', {'id': game.id}) }}">👁️ Show</a>
+            <a class="btn-row edit" href="{{ path('app_game_edit', {'id': game.id}) }}">✏️ Edit</a>
+
+            <form method="post"
+                  action="{{ path('app_game_delete', {'id': game.id}) }}"
+                  onsubmit="return confirm('Supprimer ce jeu ?');"
+                  style="display:inline;">
+              <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ game.id) }}">
+              <button class="btn-row del" type="submit">🗑️ Delete</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="am-empty">Aucun jeu trouvé.</div>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .am-wrap{padding:18px;}
+  .am-top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .am-title{display:flex;gap:12px;align-items:center;}
+  .am-icon{font-size:22px;opacity:.9}
+  .am-title h1{margin:0;font-size:44px;line-height:1;color:#a855f7;font-weight:900;}
+  .am-sub{margin-top:8px;color:#cbd5f5;opacity:.9;font-weight:700;}
+
+  .am-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+
+  .am-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:10px 14px;border-radius:999px;
+    font-weight:900;text-decoration:none;color:#fff;border:1px solid transparent;
+    cursor:pointer;
+  }
+  .am-btn-primary{background:linear-gradient(90deg,var(--purple),var(--blue));}
+  .am-btn-ghost{background:rgba(168,85,247,.10);border:1px solid rgba(168,85,247,.25);}
+
+  .am-btn:hover{opacity:.96;transform:translateY(-1px);}
+
+  .am-flash{margin:10px 0;padding:10px 12px;border-radius:12px;font-weight:800;border:1px solid rgba(49,46,129,.35);background:rgba(20,24,60,.35);}
+  .am-flash.success{color:#86efac;}
+  .am-flash.error{color:#fca5a5;}
+
+  .am-filters{
+    position:relative;
+    background:rgba(20,24,60,.25);
+    border:1px solid rgba(49,46,129,.35);
+    border-radius:18px;
+    padding:14px;
+    display:grid;
+    grid-template-columns: 2.2fr 1fr 1fr 1.2fr;
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .am-filter .lbl{font-weight:900;color:#cbd5f5;margin-bottom:8px;}
+  .am-filter .in{
+    width:100%;
+    padding:12px 12px;
+    background:#0b0f2e;
+    border:1px solid rgba(49,46,129,.55);
+    border-radius:14px;
+    color:#fff;outline:none;
+  }
+  .am-filter-btn{display:flex;flex-direction:column;gap:8px;justify-content:flex-end}
+  .am-reset{color:#cbd5f5;opacity:.85;font-weight:800;text-decoration:none;align-self:flex-end}
+  .am-reset:hover{opacity:1}
+  .am-hint{
+    grid-column:1/-1;
+    margin-top:-2px;
+    color:#cbd5f5;
+    opacity:.85;
+    font-weight:700;
+    font-size:12px;
+  }
+
+  .am-table{
+    background:rgba(20,24,60,.20);
+    border:1px solid rgba(49,46,129,.35);
+    border-radius:18px;
+    overflow:hidden;
+  }
+  .am-th,.am-tr{
+    display:grid;
+    grid-template-columns: 140px 1.6fr 220px 420px;
+    align-items:center;
+    gap:12px;
+    padding:16px;
+  }
+  .am-th{
+    font-weight:900;
+    color:#cbd5f5;
+    opacity:.9;
+    letter-spacing:.08em;
+    font-size:13px;
+    border-bottom:1px solid rgba(49,46,129,.35);
+  }
+  .am-tr{border-bottom:1px solid rgba(49,46,129,.18);}
+  .am-tr:last-child{border-bottom:none;}
+
+  .pill-id{
+    width:90px;height:56px;border-radius:999px;
+    display:flex;align-items:center;justify-content:center;
+    background:#0b0f2e;border:1px solid rgba(49,46,129,.55);
+    font-size:22px;font-weight:900;
+  }
+
+  .name-wrap{display:flex;align-items:center;gap:14px;}
+  .avatar{
+    width:56px;height:56px;border-radius:14px;
+    background:rgba(168,85,247,.12);
+    border:1px solid rgba(168,85,247,.25);
+    overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .meta .nm{font-size:22px;font-weight:900;color:#fff;margin:0;}
+  .meta .sub{margin-top:4px;color:#cbd5f5;opacity:.85;font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px;}
+  .dot{width:10px;height:10px;border-radius:999px;background:rgba(168,85,247,.85);display:inline-block;}
+
+  .pill-max{
+    width:130px;height:56px;border-radius:999px;
+    display:flex;align-items:center;justify-content:center;
+    background:#0b0f2e;border:1px solid rgba(49,46,129,.55);
+    font-size:22px;font-weight:900;
+  }
+
+  .c-act{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;}
+  .btn-row{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:10px 16px;border-radius:999px;
+    font-weight:900;text-decoration:none;color:#fff;
+    background:rgba(11,15,46,.85);
+    border:1px solid rgba(49,46,129,.55);
+    cursor:pointer;
+  }
+  .btn-row:hover{opacity:.96;transform:translateY(-1px);}
+  .btn-row.del{border-color:rgba(220,38,38,.35); background:rgba(220,38,38,.10);}
+  .btn-row.edit{background:rgba(168,85,247,.10);border-color:rgba(168,85,247,.25);}
+  .btn-row.show{background:rgba(59,130,246,.10);border-color:rgba(59,130,246,.25);}
+
+  .am-empty{padding:18px;color:#cbd5f5;opacity:.85;font-weight:800;}
+
+  @media (max-width: 1100px){
+    .am-th,.am-tr{grid-template-columns: 120px 1fr 170px 1fr;}
+    .c-act{justify-content:flex-start;}
+  }
+  @media (max-width: 900px){
+    .am-title h1{font-size:34px;}
+    .am-filters{grid-template-columns:1fr;gap:10px;}
+    .am-th{display:none;}
+    .am-tr{grid-template-columns:1fr;gap:10px;}
+    .pill-id,.pill-max{width:100%;height:48px;}
+    .c-act{justify-content:flex-start;}
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}ArenaMind • Modifier jeu{% endblock %}
+
+{% block body %}
+<section class="section">
+  <div class="panel am-form-page">
+
+    <div class="am-head">
+      <h1 class="am-h1">Modifier jeu</h1>
+      <p class="am-sub">Mettre à jour les informations du jeu.</p>
+    </div>
+
+    <div class="am-card">
+      {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+        {{ form_errors(form) }}
+
+        <div class="am-field">
+          {{ form_row(form.name, {'row_attr': {'class': 'am-row'}, 'attr': {'class':'am-input'}}) }}
+        </div>
+
+        <div class="am-field" style="margin-top:12px;">
+          {{ form_row(form.maxPlayers, {'row_attr': {'class': 'am-row'}, 'attr': {'class':'am-input'}}) }}
+        </div>
+
+        <div class="am-field" style="margin-top:12px;">
+          {{ form_row(form.imageUrl, {'row_attr': {'class': 'am-row'}, 'attr': {'class':'am-input'}}) }}
+        </div>
+
+        <button class="am-btn primary" type="submit">Mettre à jour</button>
+      {{ form_end(form) }}
+
+      <form method="post"
+            action="{{ path('app_game_delete', {'id': game.id}) }}"
+            onsubmit="return confirm('Supprimer ce jeu ?');">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ game.id) }}">
+        <button class="am-btn danger" type="submit">Supprimer</button>
+      </form>
+
+      <a class="am-btn ghost" href="{{ path('app_game_index') }}">Retour</a>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .am-form-page{padding:18px;}
+  .am-head{margin-bottom:12px;text-align:center;}
+  .am-h1{margin:0;font-size:44px;line-height:1;color:#a855f7;font-weight:900;}
+  .am-sub{margin:10px 0 0;color:#cbd5f5;opacity:.9;font-weight:700;}
+
+  .am-card{
+    margin-top:14px;
+    background:rgba(20,24,60,.25);
+    border:1px solid rgba(49,46,129,.35);
+    border-radius:18px;
+    padding:16px;
+  }
+
+  .am-field{display:flex;flex-direction:column;gap:8px;}
+  .am-row label{display:block;font-weight:900;color:#cbd5f5;margin-bottom:8px;}
+  .am-input{
+    width:100%;
+    padding:12px 12px;
+    background:#0b0f2e;
+    border:1px solid rgba(49,46,129,.55);
+    border-radius:14px;
+    color:#fff;outline:none;
+  }
+  .am-input:focus{
+    border-color:rgba(168,85,247,.8);
+    box-shadow:0 0 0 3px rgba(168,85,247,.15);
+  }
+  .am-row ul{margin:8px 0 0;padding-left:18px;}
+  .am-row li{color:#fca5a5;font-weight:800;font-size:13px;line-height:1.4;}
+
+  .am-btn{
+    display:block;width:100%;
+    margin-top:14px;
+    padding:14px 16px;
+    border-radius:999px;
+    text-align:center;
+    font-weight:900;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    color:#fff;
+  }
+  .am-btn.primary{background:linear-gradient(90deg,var(--purple),var(--blue));}
+  .am-btn.danger{
+    background:linear-gradient(90deg, rgba(220,38,38,.85), rgba(59,130,246,.45));
+    border:1px solid rgba(220,38,38,.35);
+  }
+  .am-btn.ghost{
+    background:linear-gradient(90deg, rgba(168,85,247,.55), rgba(59,130,246,.45));
+    border:1px solid rgba(168,85,247,.25);
+    opacity:.95;
+  }
+  .am-btn:hover{opacity:.96;transform:translateY(-1px);}
+
+  @media (max-width: 900px){
+    .am-h1{font-size:34px;text-align:left;}
+    .am-head{text-align:left;}
+  }
+</style>
+{% endblock %}

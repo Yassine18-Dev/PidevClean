@@ -1,0 +1,207 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}ArenaMind • Game Detail{% endblock %}
+
+{% block body %}
+<section class="section">
+  <div class="panel am-detail-wrap">
+
+    {% if error %}
+      <div class="am-alert">{{ error }}</div>
+    {% endif %}
+
+    {% if game %}
+      <div class="am-top">
+        <div class="am-cover">
+          <img
+            src="{{ game.background_image ?: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1400&q=80' }}"
+            alt="{{ game.name }}"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1400&q=80';"
+          >
+        </div>
+
+        <div class="am-info">
+          <h1 class="am-title">{{ game.name }}</h1>
+
+          <div class="am-actions">
+            {% if game.website %}
+              <a class="am-btn am-btn-primary" target="_blank" rel="noopener" href="{{ game.website }}">
+                🌐 Visiter le site
+              </a>
+            {% endif %}
+
+            <a class="am-btn am-btn-ghost" href="{{ path('app_game_explore') }}">
+              ← Explore Games
+            </a>
+
+            <a class="am-btn am-btn-ghost" href="{{ path('app_game_index') }}">
+              ⚙️ Manage Games
+            </a>
+          </div>
+
+          <div class="am-meta">
+            {% if game.released %}<div class="am-chip">📅 {{ game.released }}</div>{% endif %}
+            {% if game.rating is defined %}<div class="am-chip">⭐ {{ game.rating }}</div>{% endif %}
+            {% if game.metacritic is defined and game.metacritic %}<div class="am-chip">📊 Metacritic {{ game.metacritic }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="am-grid">
+        <div class="am-card">
+          <div class="am-card-title">🎮 Genres</div>
+          <div class="am-list">
+            {% for g in game.genres ?? [] %}
+              <div class="am-row">{{ g.name }}</div>
+            {% else %}
+              <div class="am-row muted">—</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="am-card">
+          <div class="am-card-title">💻 Plateformes</div>
+          <div class="am-list">
+            {% for p in game.platforms ?? [] %}
+              <div class="am-row">{{ p.platform.name }}</div>
+            {% else %}
+              <div class="am-row muted">—</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="am-card">
+          <div class="am-card-title">🛒 Disponible sur</div>
+          <div class="am-list">
+            {% for s in game.stores ?? [] %}
+              <div class="am-row">{{ s.store.name }}</div>
+            {% else %}
+              <div class="am-row muted">—</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="am-card">
+          <div class="am-card-title">🧑‍💻 Développeur(s)</div>
+          <div class="am-list">
+            {% for d in game.developers ?? [] %}
+              <div class="am-row">{{ d.name }}</div>
+            {% else %}
+              <div class="am-row muted">—</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="am-card">
+          <div class="am-card-title">🏢 Éditeur(s)</div>
+          <div class="am-list">
+            {% for p in game.publishers ?? [] %}
+              <div class="am-row">{{ p.name }}</div>
+            {% else %}
+              <div class="am-row muted">—</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {% if screenshots is not empty %}
+        <h2 class="am-section-title">📸 Screenshots</h2>
+        <div class="am-shots">
+          {% for s in screenshots %}
+            <div class="am-shot">
+              <img src="{{ s.image }}" alt="screenshot" loading="lazy">
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endif %}
+
+  </div>
+</section>
+
+<style>
+  .am-detail-wrap{padding:18px;}
+  .am-alert{
+    margin:12px 0;
+    padding:12px 14px;
+    border-radius:14px;
+    background:rgba(220,38,38,.12);
+    border:1px solid rgba(220,38,38,.30);
+    color:#fecaca;
+    font-weight:800;
+  }
+
+  .am-top{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start;}
+  .am-cover{
+    border-radius:18px;
+    overflow:hidden;
+    border:1px solid rgba(49,46,129,.45);
+    background:#0b0f2e;
+  }
+  .am-cover img{width:100%;height:240px;object-fit:cover;display:block;}
+
+  .am-title{margin:0;color:#fff;font-size:32px;font-weight:900;}
+  .am-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 10px;}
+
+  /* ✅ Boutons comme les autres */
+  .am-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:12px 16px;
+    border-radius:16px;
+    font-weight:900;
+    color:#fff;
+    text-decoration:none;
+    border:1px solid transparent;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:.15s transform, .15s opacity;
+  }
+  .am-btn-primary{
+    background:linear-gradient(90deg,var(--purple),var(--blue));
+  }
+  .am-btn-ghost{
+    background:rgba(168,85,247,.12);
+    border:1px solid rgba(168,85,247,.25);
+  }
+  .am-btn:hover{opacity:.96;transform:translateY(-1px);}
+
+  .am-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+  .am-chip{
+    display:inline-block;
+    padding:8px 12px;
+    border-radius:999px;
+    background:rgba(20,24,60,.65);
+    border:1px solid rgba(49,46,129,.45);
+    color:#cbd5f5;
+    font-weight:800;
+    font-size:13px;
+  }
+
+  .am-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;}
+  .am-card{
+    background:rgba(20,24,60,.35);
+    border:1px solid rgba(49,46,129,.35);
+    border-radius:18px;
+    padding:14px;
+  }
+  .am-card-title{font-weight:900;color:#a855f7;margin-bottom:10px;}
+  .am-list{display:grid;gap:8px;}
+  .am-row{color:#fff;font-weight:700;}
+  .muted{color:#cbd5f5;opacity:.8;font-weight:700;}
+
+  .am-section-title{margin:18px 0 10px;color:#fff;font-weight:900;}
+  .am-shots{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .am-shot{border-radius:16px;overflow:hidden;border:1px solid rgba(49,46,129,.35);background:#0b0f2e;}
+  .am-shot img{width:100%;height:120px;object-fit:cover;display:block;}
+
+  @media (max-width: 1000px){
+    .am-top{grid-template-columns:1fr;}
+    .am-cover img{height:220px;}
+    .am-grid{grid-template-columns:1fr;}
+    .am-shots{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+{% endblock %}

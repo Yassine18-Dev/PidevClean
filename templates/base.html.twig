@@ -12,7 +12,15 @@
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
     </head>
-    <body>
+    <body style="margin:0; font-family:'Segoe UI',sans-serif; background:radial-gradient(circle at top,#1b1f3b,#050814); color:#fff; min-height:100vh;">
+        <nav style="background:rgba(5,8,20,.75); border-bottom:1px solid rgba(49,46,129,.35); padding:14px 22px; display:flex; justify-content:space-between; align-items:center; backdrop-filter:blur(10px);">
+            <div style="font-weight:900; font-size:20px; color:#a855f7;">🎮 ArenaMind <span style="font-size:12px; opacity:0.7; font-weight:400; color:#cbd5f5;">Admin</span></div>
+            <div>
+                <a href="{{ path('ui_home') }}" style="color:#dbeafe; text-decoration:none; font-weight:700; font-size:14px; padding:8px 16px; border:1px solid rgba(49,46,129,.55); border-radius:8px; background:rgba(20,24,60,.5); transition:all 0.2s;">
+                    🏠 Retour au Site
+                </a>
+            </div>
+        </nav>
        
         {% block body %}{% endblock %}
     </body>

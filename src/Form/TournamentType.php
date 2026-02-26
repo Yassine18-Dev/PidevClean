@@ -6,6 +6,7 @@ use App\Entity\Game;
 use App\Entity\Tournament;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -19,6 +20,7 @@ class TournamentType extends AbstractType
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Nom du tournoi',
+                'required' => false,
                 'attr' => [
                     'class' => 'am-input',
                     'placeholder' => 'Ex: ArenaMind Cup — Valorant',
@@ -28,62 +30,72 @@ class TournamentType extends AbstractType
                 'class' => Game::class,
                 'choice_label' => 'name',
                 'label' => 'Jeu',
+                'required' => false,
                 'placeholder' => '— Sélectionner —',
-                'attr' => [
-                    'class' => 'am-input',
-                ],
+                'attr' => ['class' => 'am-input'],
             ])
             ->add('startAt', DateTimeType::class, [
                 'label' => 'Début',
+                'required' => false,
                 'widget' => 'single_text',
-                'attr' => [
-                    'class' => 'am-input',
-                ],
+                'attr' => ['class' => 'am-input'],
             ])
             ->add('checkInAt', DateTimeType::class, [
                 'label' => 'Check-in (optionnel)',
-                'widget' => 'single_text',
                 'required' => false,
-                'attr' => [
-                    'class' => 'am-input',
-                ],
+                'widget' => 'single_text',
+                'attr' => ['class' => 'am-input'],
             ])
             ->add('slots', IntegerType::class, [
                 'label' => 'Slots',
+                'required' => false,
                 'attr' => [
                     'class' => 'am-input',
                     'min' => 1,
                     'max' => 128,
+                    'placeholder' => 'Ex: 16',
                 ],
             ])
             ->add('format', TextType::class, [
                 'label' => 'Format',
+                'required' => false,
                 'attr' => [
                     'class' => 'am-input',
-                    'placeholder' => 'Ex: 5v5, 1v1, Team format',
+                    'placeholder' => 'Ex: 5v5, 1v1',
                 ],
             ])
             ->add('prize', TextType::class, [
-                'label' => 'Prize',
+                'label' => 'Prix',
+                'required' => false,
                 'attr' => [
                     'class' => 'am-input',
                     'placeholder' => 'Ex: 500DT, points + badges',
                 ],
             ])
             ->add('rules', TextType::class, [
-                'label' => 'Rules',
+                'label' => 'Règles',
+                'required' => false,
                 'attr' => [
                     'class' => 'am-input',
                     'placeholder' => 'Ex: Standard, Clash',
                 ],
             ])
-            ->add('status', TextType::class, [
-                'label' => 'Status',
+            ->add('status', ChoiceType::class, [
+                'label' => 'Statut',
+                'required' => false,
+                'placeholder' => '— Choisir —',
+                'choices' => [
+                    'Scheduled' => 'Scheduled',
+                    'Upcoming'  => 'Upcoming',
+                    'Open'      => 'Open',
+                    'Closed'    => 'Closed',
+                    'Finished'  => 'Finished',
+                ],
                 'attr' => [
                     'class' => 'am-input',
-                    'placeholder' => 'Scheduled / Open / Closed',
                 ],
-            ]);
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -5,10 +5,9 @@
   <title>{% block title %}ArenaMind • Front{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="{{ asset('css/cart.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
     :root{
@@ -38,49 +37,62 @@
     .flash-error{background:var(--danger);padding:10px;border-radius:10px;margin-bottom:12px;text-align:center;font-weight:700;}
     .err{color:#fecaca;font-size:13px;margin:-8px 0 10px;}
   </style>
-    
-
 </head>
+
 <body>
 
 <nav>
-  <div class="logo">🎮 ArenaMind</div>
-    <div class="nav-right">
+  {# ✅ FIX: ui_home n'existe pas -> front_home #}
+  <a href="{{ path('front_home') }}" class="logo" style="text-decoration:none;">🎮 ArenaMind</a>
+
+  <div class="nav-right">
+    {# ✅ FIX: ui_home n'existe pas -> front_home #}
+    <a href="{{ path('front_home') }}" style="color:#a855f7;">🏠 Home</a>
+
     <a href="{{ path('ui_login') }}">Login</a>
     <a href="{{ path('ui_register') }}">Register</a>
     <a href="{{ path('ui_profile') }}">Profile</a>
     <a href="{{ path('ui_profile_edit') }}">Edit</a>
     <a href="{{ path('ui_forgot_password') }}">Forgot</a>
+
     <a class="nav-link" href="/shop/merch">Shop</a>
+
     <a href="{{ path('ui_logout') }}">Logout</a>
     <a href="{{ path('ui_admin') }}">Admin</a>
-    
-        <button id="cart-btn" class="cart-btn">
-        <i class="fa-solid fa-cart-shopping"></i>
-        <span id="cart-count">0</span>
+
+    <button id="cart-btn" class="cart-btn">
+      <i class="fa-solid fa-cart-shopping"></i>
+      <span id="cart-count">0</span>
     </button>
   </div>
 </nav>
+
 <div id="cart-panel" class="cart-panel">
-    <h6 class="text-uppercase text-info mb-3">Mon panier</h6>
+  <h6 class="text-uppercase text-info mb-3">Mon panier</h6>
 
-    <div id="cart-items">
-        <small class="empty-cart">Panier vide</small>
+  <div id="cart-items">
+    <small class="empty-cart">Panier vide</small>
+  </div>
+
+  <div class="cart-footer">
+    <div class="d-flex justify-content-between fw-bold">
+      <span>Total</span>
+      <span><span id="cart-total">0</span> €</span>
     </div>
 
-    <div class="cart-footer">
-        <div class="d-flex justify-content-between fw-bold">
-            <span>Total</span>
-            <span><span id="cart-total">0</span> €</span>
-        </div>
-
-        <a href="/cart" class="checkout-btn">💳 Passer commande</a>
-    </div>
+    <a href="/cart" class="checkout-btn">💳 Passer commande</a>
+  </div>
 </div>
 
 <div class="container">
-  {% for msg in app.flashes('success') %}<div class="flash-success">{{ msg }}</div>{% endfor %}
-  {% for msg in app.flashes('error') %}<div class="flash-error">{{ msg }}</div>{% endfor %}
+  {% for msg in app.flashes('success') %}
+    <div class="flash-success">{{ msg }}</div>
+  {% endfor %}
+
+  {% for msg in app.flashes('error') %}
+    <div class="flash-error">{{ msg }}</div>
+  {% endfor %}
+
   {% block body %}{% endblock %}
 </div>
 
@@ -89,9 +101,5 @@
   <script src="{{ asset('js/payment.js') }}"></script>
 {% endblock %}
 
-
-
-  
 </body>
-
 </html>

@@ -1,0 +1,546 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}ArenaMind • Home{% endblock %}
+
+{% block body %}
+
+<section class="hero">
+  <div class="hero-left">
+    <div class="pill">⚡ ArenaMind • Season 2026</div>
+    <h1>Play. Compete. Win.</h1>
+    <p class="lead">
+      ArenaMind is your esports platform: teams, tournaments, rankings, shop gear, and support.
+      Build your profile and join competitive events weekly.
+    </p>
+
+    <div class="cta">
+      <a class="btn-primary" href="#tournaments">🏆 Join tournaments</a>
+      <a class="btn-ghost" href="#games">🎮 Explore games</a>
+      <a class="btn-ghost" href="#shop">🛒 Shop</a>
+    </div>
+
+    <div class="quick">
+      <a class="chip" href="{{ path('ui_profile') }}">👤 Profile</a>
+      <a class="chip" href="{{ path('ui_profile_edit') }}">✏️ Edit profile</a>
+      <a class="chip danger" href="{{ path('ui_logout') }}">🚪 Logout</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat"><div class="num">120+</div><div class="lbl">Players</div></div>
+      <div class="stat"><div class="num">18</div><div class="lbl">Weekly events</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">Main games</div></div>
+      <div class="stat"><div class="num">500DT</div><div class="lbl">Prize pools</div></div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <img class="hero-img"
+         src="{{ asset('images/hero.jpg') }}"
+         alt="ArenaMind Hero"
+         loading="lazy"
+         onerror="this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1400&q=80'">
+
+    <div class="hero-badges">
+      <div class="floating">
+        <div class="t">🔥 Featured</div>
+        <div class="s">ArenaMind Cup — Valorant (Saturday)</div>
+        <a class="badge" href="#tournaments">View details</a>
+      </div>
+      <div class="floating2">
+        <div class="t">✅ Verified</div>
+        <div class="s">Secure accounts + reset password</div>
+      </div>
+    </div>
+
+    {# Option: une vidéo teaser (si tu veux) #}
+    {# <div class="video-card">
+      <div class="video-title">Teaser</div>
+      <iframe width="100%" height="170"
+              src="https://www.youtube.com/embed/2Q2V-6YfD0k"
+              title="ArenaMind Teaser"
+              frameborder="0"
+              allowfullscreen></iframe>
+    </div> #}
+  </div>
+</section>
+
+<nav class="section-nav">
+  <a href="#games">🎮 Games</a>
+  <a href="#tournaments">🏆 Tournaments</a>
+  <a href="#teams">🧩 Teams</a>
+  <a href="#news">📰 News</a>
+  <a href="#shop">🛒 Shop</a>
+  <a href="#support">💬 Support</a>
+</nav>
+
+{# ================= GAMES ================= #}
+<section id="games" class="section">
+  <div class="head">
+    <h2>🎮 Featured Games</h2>
+    <p class="sub">Official links + esports competitions.</p>
+  </div>
+
+  {# --- BOUTONS AJOUTÉS (Manage / Explore) --- #}
+  <div class="row" style="margin-bottom:16px;">
+    {# Manage Games : redirige vers ta page CRUD des jeux (adapter la route si nécessaire) #}
+    <a class="btn-primary" href="{{ path('app_game_index') }}">
+      ⚙️ Manage Games
+    </a>
+
+    {# Explore Games : page RAWG API / exploration #}
+    <a class="btn-ghost" href="{{ path('app_game_explore') }}">
+      🌍 Explore Games
+    </a>
+  </div>
+
+  <div class="grid3">
+    <article class="card">
+      <img class="card-img"
+     src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1400&q=80"
+     alt="Valorant"
+     loading="lazy">
+      <div class="card-body">
+        <div class="tag">FPS</div>
+        <h3>Valorant</h3>
+        <p class="muted">5v5 tactical shooter — VCT tournaments & ranked ladders.</p>
+        <div class="actions">
+          <a class="badge" target="_blank" href="https://playvalorant.com/">Official</a>
+          <a class="badge" target="_blank" href="https://valorantesports.com/">VCT</a>
+          <a class="badge" href="#tournaments">ArenaMind Events</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <img class="card-img"
+     src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1400&q=80"
+     alt="League of Legends"
+     loading="lazy">
+      <div class="card-body">
+        <div class="tag">MOBA</div>
+        <h3>League of Legends</h3>
+        <p class="muted">Weekly clash, team tournaments, strategy and comps.</p>
+        <div class="actions">
+          <a class="badge" target="_blank" href="https://www.leagueoflegends.com/">Official</a>
+          <a class="badge" target="_blank" href="https://lolesports.com/">LoL Esports</a>
+          <a class="badge" href="#tournaments">ArenaMind Events</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <img class="card-img"
+     src="https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=1400&q=80"
+     alt="EA Sports FC"
+     loading="lazy">
+      <div class="card-body">
+        <div class="tag">SPORT</div>
+        <h3>EA Sports FC (FIFA)</h3>
+        <p class="muted">1v1 cups, leaderboards and official FC Pro circuit.</p>
+        <div class="actions">
+          <a class="badge" target="_blank" href="https://www.ea.com/games/ea-sports-fc">Official</a>
+          <a class="badge" target="_blank" href="https://www.ea.com/games/ea-sports-fc/fc-pro">FC Pro</a>
+          <a class="badge" href="#tournaments">ArenaMind Events</a>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+{# ================= TOURNAMENTS ================= #}
+<section id="tournaments" class="section">
+  <div class="head">
+    <h2>🏆 Upcoming Tournaments</h2>
+    <p class="sub">Realistic structure: check-in, rules, slots, prize.</p>
+  </div>
+
+  {# --- BOUTONS AJOUTÉS (Manage / Upcoming) --- #}
+  <div class="row" style="margin-bottom:16px;">
+    {# Manage Tournaments : redirige vers CRUD tournois (adapter la route si nécessaire) #}
+    <a class="btn-primary" href="{{ path('am_tournament_index') }}">
+      ⚙️ Manage Tournaments
+    </a>
+
+    {# Upcoming Tournaments : page liste des tournois #}
+    <a class="btn-ghost" href="{{ path('am_tournaments') }}">
+      📅 Upcoming Tournaments
+    </a>
+  </div>
+
+  <div class="grid2">
+    <article class="card soft">
+      <div class="card-body">
+        <div class="tag">Valorant</div>
+        <h3>ArenaMind Cup — Valorant</h3>
+        <p class="muted">Saturday • 5v5 • Prize: 500DT • BO1 → BO3 playoffs</p>
+
+        <div class="mini">
+          <div><b>Check-in</b><br>18:00</div>
+          <div><b>Start</b><br>19:00</div>
+          <div><b>Slots</b><br>16 teams</div>
+          <div><b>Rules</b><br>Standard</div>
+        </div>
+
+        <div class="actions">
+          <a class="btn-primary" href="#support">Request invitation</a>
+          <a class="btn-ghost" target="_blank" href="https://challengermode.com/valorant">Browse cups</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card soft">
+      <div class="card-body">
+        <div class="tag">LoL</div>
+        <h3>LoL Weekly Clash</h3>
+        <p class="muted">Friday • Team format • Prize: points + badges</p>
+
+        <div class="mini">
+          <div><b>Check-in</b><br>17:30</div>
+          <div><b>Start</b><br>18:30</div>
+          <div><b>Slots</b><br>8 teams</div>
+          <div><b>Rules</b><br>Clash</div>
+        </div>
+
+        <div class="actions">
+          <a class="btn-primary" href="#support">Ask for slot</a>
+          <a class="btn-ghost" target="_blank" href="https://battlefy.com/">Browse events</a>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="platforms">
+    <h3 style="margin:0 0 10px;">🌍 Tournament Platforms</h3>
+    <div class="row">
+      <a class="chip" target="_blank" href="https://battlefy.com/">Battlefy</a>
+      <a class="chip" target="_blank" href="https://www.toornament.com/">Toornament</a>
+      <a class="chip" target="_blank" href="https://challengermode.com/">Challengermode</a>
+      <a class="chip" target="_blank" href="https://www.vlr.gg/">VLR</a>
+    </div>
+  </div>
+</section>
+
+{# ================= TEAMS ================= #}
+<section id="teams" class="section">
+  <div class="head">
+    <h2>🧩 Featured Teams</h2>
+    <p class="sub">Example showcase — later connect it to your Team/Player entities.</p>
+  </div>
+
+  <div class="grid3">
+    <article class="card">
+      <img class="card-img" src="{{ asset('images/team-1.jpg') }}" alt="Team" loading="lazy"
+           onerror="this.src='https://images.unsplash.com/photo-1520975682031-a3c81d3f7d51?auto=format&fit=crop&w=1200&q=80'">
+      <div class="card-body">
+        <h3>Nova Titans</h3>
+        <p class="muted">Valorant main roster — disciplined executes.</p>
+        <div class="actions">
+          <span class="badge">Rank: Diamond</span>
+          <span class="badge">Region: TN</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <img class="card-img" src="{{ asset('images/team-2.jpg') }}" alt="Team" loading="lazy"
+           onerror="this.src='https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1200&q=80'">
+      <div class="card-body">
+        <h3>Arcane Five</h3>
+        <p class="muted">LoL competitive — macro + objective control.</p>
+        <div class="actions">
+          <span class="badge">Rank: Master</span>
+          <span class="badge">Region: EU</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <img class="card-img" src="{{ asset('images/team-3.jpg') }}" alt="Team" loading="lazy"
+           onerror="this.src='https://images.unsplash.com/photo-1532635241-17e820acc59f?auto=format&fit=crop&w=1200&q=80'">
+      <div class="card-body">
+        <h3>FC Legends</h3>
+        <p class="muted">EAFC — clutch players + tournament focus.</p>
+        <div class="actions">
+          <span class="badge">Rank: Top 200</span>
+          <span class="badge">Mode: 1v1</span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+{# ================= NEWS ================= #}
+<section id="news" class="section">
+  <div class="head">
+    <h2>📰 Latest News</h2>
+    <p class="sub">Lookslike a real platform: announcements, patch notes, events.</p>
+  </div>
+
+  <div class="grid3">
+    <article class="card">
+      <img class="card-img" src="{{ asset('images/news-1.jpg') }}" alt="News" loading="lazy"
+           onerror="this.src='https://images.unsplash.com/photo-1551817958-d9d86fb29431?auto=format&fit=crop&w=1200&q=80'">
+      <div class="card-body">
+        <div class="tag">Update</div>
+        <h3>New Season Rankings</h3>
+        <p class="muted">Rank resets + improved matchmaking (coming soon).</p>
+        <div class="actions"><span class="badge">2 days ago</span></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <img class="card-img" src="{{ asset('images/news-2.jpg') }}" alt="News" loading="lazy"
+           onerror="this.src='https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=1200&q=80'">
+      <div class="card-body">
+        <div class="tag">Event</div>
+        <h3>Valorant Cup Registration</h3>
+        <p class="muted">Team slots open — check-in Saturday 18:00.</p>
+        <div class="actions"><a class="badge" href="#support">Apply</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <img class="card-img" src="{{ asset('images/news-3.jpg') }}" alt="News" loading="lazy"
+           onerror="this.src='https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80'">
+      <div class="card-body">
+        <div class="tag">Shop</div>
+        <h3>New Gear Drop</h3>
+        <p class="muted">Keyboards, mice, headsets — limited stock.</p>
+        <div class="actions"><a class="badge" href="#shop">Go Shop</a></div>
+      </div>
+    </article>
+  </div>
+</section>
+
+{# ================= SHOP ================= #}
+<section id="shop" class="section">
+  <div class="head">
+    <h2>🛒 Shop Highlights</h2>
+    <p class="sub">Professional layout — later connect to your Shop module.</p>
+  </div>
+
+  <div class="grid3">
+    <article class="card">
+      <img class="card-img" src="{{ asset('images/shop-1.jpg') }}" alt="Headset" loading="lazy"
+           onerror="this.src='https://images.unsplash.com/photo-1580894908361-967195033215?auto=format&fit=crop&w=1200&q=80'">
+      <div class="card-body">
+        <h3>Pro Headset</h3>
+        <p class="muted">Clear comms, tournament-ready sound.</p>
+        <div class="actions"><span class="badge">129 DT</span><a class="badge" href="#">Add</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <img class="card-img" src="{{ asset('images/shop-2.jpg') }}" alt="Keyboard" loading="lazy"
+           onerror="this.src='https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80'">
+      <div class="card-body">
+        <h3>Mechanical Keyboard</h3>
+        <p class="muted">Fast switches, low latency.</p>
+        <div class="actions"><span class="badge">169 DT</span><a class="badge" href="#">Add</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <img class="card-img" src="{{ asset('images/shop-3.jpg') }}" alt="Mouse" loading="lazy"
+           onerror="this.src='https://images.unsplash.com/photo-1527814050087-3793815479db?auto=format&fit=crop&w=1200&q=80'">
+      <div class="card-body">
+        <h3>Gaming Mouse</h3>
+        <p class="muted">Precision aiming, adjustable DPI.</p>
+        <div class="actions"><span class="badge">99 DT</span><a class="badge" href="#">Add</a></div>
+      </div>
+    </article>
+  </div>
+</section>
+
+{# ================= TESTIMONIALS + PARTNERS ================= #}
+<section class="section">
+  <div class="grid2">
+    <div class="panel">
+      <h2>⭐ Community Feedback</h2>
+      <p class="muted">“Real platform vibes” — your teacher 😄</p>
+      <div class="quote">
+        “ArenaMind makes tournaments simple. Clean UI, good admin tools, and secure accounts.”
+        <div class="muted" style="margin-top:6px;">— PlayerOne, Valorant</div>
+      </div>
+      <div class="quote">
+        “The admin can manage users (CRUD + search + sort). Very useful.”
+        <div class="muted" style="margin-top:6px;">— Admin, Back Office</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>🤝 Partners</h2>
+      <p class="muted">Add real logos later — for now placeholders.</p>
+      <div class="partners">
+        <img src="{{ asset('images/partner-1.png') }}" alt="partner" onerror="this.style.display='none'">
+        <img src="{{ asset('images/partner-2.png') }}" alt="partner" onerror="this.style.display='none'">
+        <img src="{{ asset('images/partner-3.png') }}" alt="partner" onerror="this.style.display='none'">
+      </div>
+      <div class="row">
+        <a class="chip" target="_blank" href="https://www.riotgames.com/">Riot</a>
+        <a class="chip" target="_blank" href="https://www.ea.com/">EA</a>
+        <a class="chip" target="_blank" href="https://www.epicgames.com/">Epic</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ================= FAQ ================= #}
+<section class="section">
+  <div class="head">
+    <h2>❓ FAQ</h2>
+    <p class="sub">Adds “real product” feeling.</p>
+  </div>
+
+  <div class="faq">
+    <details class="faq-item" open>
+      <summary>How to join a tournament?</summary>
+      <div class="muted">Go to the Tournaments section and request an invitation via Support.</div>
+    </details>
+    <details class="faq-item">
+      <summary>How to reset password?</summary>
+      <div class="muted">Use “Forgot password” → you receive a link with token + expiration.</div>
+    </details>
+    <details class="faq-item">
+      <summary>Admin features?</summary>
+      <div class="muted">Admin can CRUD users, search/sort, and manage statuses (active/suspend/ban).</div>
+    </details>
+  </div>
+</section>
+
+{# ================= SUPPORT ================= #}
+<section id="support" class="section">
+  <div class="head">
+    <h2>💬 Support</h2>
+    <p class="sub">Later you can connect this to Mailer (Brevo) to email admins.</p>
+  </div>
+
+  <div class="support">
+    <div class="panel">
+      <h3>Common requests</h3>
+      <p class="muted">Tournament invitation • Team creation • Shop issue • Account status</p>
+      <div class="row">
+        <span class="chip">Tournament</span>
+        <span class="chip">Team</span>
+        <span class="chip">Shop</span>
+        <span class="chip">Account</span>
+      </div>
+    </div>
+
+    <form method="post" class="panel">
+      <label>Subject</label>
+      <input name="subject" placeholder="Tournament request / bug / help..." />
+
+      <label>Message</label>
+      <textarea name="message" rows="5"
+                style="width:100%;padding:12px;background:#0b0f2e;border:1px solid var(--border);border-radius:12px;color:white;outline:none;"
+                placeholder="Write your message (min 10 chars)..." ></textarea>
+
+      <button>Send support request</button>
+      <p class="muted" style="margin-top:10px;font-size:12px;">Server-side validation recommended.</p>
+    </form>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-row">
+    <div>
+      <div class="foot-logo">🎮 ArenaMind</div>
+      <p class="muted">Esports hub — tournaments, teams, shop, and support.</p>
+    </div>
+    <div class="footer-links">
+      <a href="#games">Games</a>
+      <a href="#tournaments">Tournaments</a>
+      <a href="#shop">Shop</a>
+      <a href="#support">Support</a>
+    </div>
+  </div>
+  <div class="muted" style="margin-top:12px;">© {{ "now"|date("Y") }} ArenaMind — Symfony 6.4</div>
+</footer>
+
+<style>
+  /* ---- layout helpers ---- */
+  .head{margin:18px 0 10px;}
+  .sub{color:var(--muted);margin:0;text-align:left;font-size:14px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+
+  /* ---- hero ---- */
+  .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:stretch;margin-bottom:10px;}
+  .pill{display:inline-block;padding:8px 12px;border-radius:999px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);font-weight:900;font-size:12px;margin-bottom:10px;}
+  .lead{color:#cbd5f5;line-height:1.6;margin:10px 0 16px;text-align:left;}
+  .cta{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+  .btn-primary{display:inline-block;padding:10px 14px;border-radius:14px;background:linear-gradient(90deg,var(--purple),var(--blue));color:#fff;text-decoration:none;font-weight:900;}
+  .btn-ghost{display:inline-block;padding:10px 14px;border-radius:14px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);color:#fff;text-decoration:none;font-weight:900;}
+  .btn-primary:hover,.btn-ghost:hover{opacity:.94;transform:translateY(-1px);}
+
+  .quick{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+  .chip{display:inline-block;padding:8px 12px;border-radius:999px;background:rgba(20,24,60,.7);border:1px solid rgba(49,46,129,.45);color:#fff;text-decoration:none;font-weight:800;font-size:13px;}
+  .chip.danger{border-color:rgba(220,38,38,.55);background:rgba(220,38,38,.10);}
+  .chip:hover{opacity:.95;transform:translateY(-1px);}
+
+  .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;}
+  .stat{background:rgba(20,24,60,.55);border:1px solid rgba(49,46,129,.35);border-radius:16px;padding:12px;}
+  .num{font-size:18px;font-weight:900;color:#a855f7;}
+  .lbl{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  .hero-right{position:relative;}
+  .hero-img{width:100%;height:100%;max-height:380px;object-fit:cover;border-radius:18px;border:1px solid rgba(49,46,129,.55);}
+  .hero-badges{position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:10px;flex-wrap:wrap;}
+  .floating,.floating2{background:rgba(5,8,20,.65);border:1px solid rgba(49,46,129,.45);border-radius:16px;padding:12px;backdrop-filter:blur(10px);}
+  .floating .t,.floating2 .t{font-weight:900;color:#a855f7;margin-bottom:4px;}
+  .floating .s,.floating2 .s{color:#cbd5f5;font-size:13px;margin-bottom:8px;}
+
+  /* ---- nav ---- */
+  .section-nav{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:18px 0;}
+  .section-nav a{padding:8px 12px;border-radius:999px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);color:#fff;text-decoration:none;font-weight:800;font-size:13px;}
+  .section-nav a:hover{opacity:.95;transform:translateY(-1px);}
+
+  /* ---- cards ---- */
+  .card{background:rgba(20,24,60,.65);border:1px solid rgba(49,46,129,.45);border-radius:18px;overflow:hidden;transition:.15s transform, .15s opacity;}
+  .card:hover{transform:translateY(-3px);opacity:.98;}
+  .card-img{width:100%;height:180px;object-fit:cover;border-bottom:1px solid rgba(49,46,129,.45);}
+  .card-body{padding:14px;}
+  .muted{color:var(--muted);font-size:13px;}
+  .tag{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);font-weight:900;font-size:12px;margin-bottom:8px;}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .badge{display:inline-block;padding:6px 12px;border-radius:999px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);font-size:12px;margin-right:6px;color:#fff;text-decoration:none;font-weight:800;}
+  .soft{background:rgba(20,24,60,.35);}
+
+  .mini{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0;color:#cbd5f5;font-size:12px;}
+  .platforms{margin-top:12px;background:rgba(20,24,60,.35);border:1px solid rgba(49,46,129,.35);border-radius:18px;padding:14px;}
+
+  /* ---- panels ---- */
+  .panel{background:rgba(20,24,60,.35);border:1px solid rgba(49,46,129,.35);border-radius:18px;padding:14px;}
+  .quote{margin-top:10px;padding:12px;border-radius:16px;background:rgba(5,8,20,.35);border:1px solid rgba(49,46,129,.35);}
+
+  .partners{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0;}
+  .partners img{height:34px;opacity:.9;filter:drop-shadow(0 0 10px rgba(168,85,247,.12));}
+
+  /* ---- faq ---- */
+  .faq{display:grid;gap:10px;}
+  .faq-item{background:rgba(20,24,60,.35);border:1px solid rgba(49,46,129,.35);border-radius:18px;padding:12px;}
+  .faq-item summary{cursor:pointer;font-weight:900;color:#fff;}
+  .faq-item div{margin-top:8px;}
+
+  /* ---- support ---- */
+  .support{display:grid;grid-template-columns:.9fr 1.1fr;gap:12px;align-items:start;}
+
+  /* ---- footer ---- */
+  .footer{margin-top:18px;padding:14px;border-top:1px solid rgba(49,46,129,.35);}
+  .footer-row{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .foot-logo{font-weight:900;font-size:18px;color:#a855f7;}
+  .footer-links a{color:#fff;text-decoration:none;margin-right:12px;opacity:.9;font-weight:800;}
+  .footer-links a:hover{opacity:1;color:#dbeafe;}
+
+  @media (max-width: 900px){
+    .hero{grid-template-columns:1fr;}
+    .grid3{grid-template-columns:1fr;}
+    .grid2{grid-template-columns:1fr;}
+    .support{grid-template-columns:1fr;}
+    .hero-stats{grid-template-columns:1fr 1fr;}
+    .mini{grid-template-columns:1fr 1fr;}
+  }
+</style>
+
+{% endblock %}

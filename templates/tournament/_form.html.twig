@@ -1,82 +1,117 @@
-{% include '_ui/am_styles.html.twig' %}
+{# templates/tournament/_form.html.twig #}
+
+{{ form_start(form, { attr: { class: 'am-form', novalidate: 'novalidate' } }) }}
+
+  {# ✅ erreurs globales une seule fois #}
+  {% if form.vars.errors|length %}
+    <div class="am-form-errors">
+      {{ form_errors(form) }}
+    </div>
+  {% endif %}
+
+  <div class="am-grid2">
+    <div class="am-field">
+      {{ form_row(form.name) }}
+      <div class="am-hint">Ex: ArenaMind Cup — Valorant</div>
+    </div>
+    <div class="am-field">
+      {{ form_row(form.game) }}
+      <div class="am-hint">Choisis FIFA / Valorant / LoL</div>
+    </div>
+  </div>
+
+  <div class="am-grid2">
+    <div class="am-field">
+      {{ form_row(form.startAt) }}
+      <div class="am-hint">Date + heure obligatoire</div>
+    </div>
+    <div class="am-field">
+      {{ form_row(form.checkInAt) }}
+      <div class="am-hint">Optionnel</div>
+    </div>
+  </div>
+
+  <div class="am-grid2">
+    <div class="am-field">
+      {{ form_row(form.slots) }}
+      <div class="am-hint">Ex: 8 / 16 / 32</div>
+    </div>
+    <div class="am-field">
+      {{ form_row(form.status) }}
+      <div class="am-hint">Scheduled / Upcoming / Open / Closed / Finished</div>
+    </div>
+  </div>
+
+  <div class="am-grid2">
+    <div class="am-field">
+      {{ form_row(form.format) }}
+      <div class="am-hint">Ex: 5v5, 1v1</div>
+    </div>
+    <div class="am-field">
+      {{ form_row(form.prize) }}
+      <div class="am-hint">Ex: 500DT</div>
+    </div>
+  </div>
+
+  <div class="am-grid1">
+    <div class="am-field">
+      {{ form_row(form.rules) }}
+      <div class="am-hint">Ex: Standard</div>
+    </div>
+  </div>
+
+  <button class="am-btn am-btn-primary am-btn-block" type="submit">
+    {{ button_label|default('Enregistrer') }}
+  </button>
+
+{{ form_end(form) }}
 
 <style>
-  .am-form{display:grid;gap:14px}
-  .am-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .am-field{background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:12px}
-  .am-label{display:block;color:rgba(255,255,255,.80);font-weight:800;font-size:13px;margin-bottom:8px}
-  .am-errors{margin:8px 0 0;color:#fecaca;font-size:13px}
-  .am-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-  @media (max-width: 800px){.am-grid2{grid-template-columns:1fr}}
+  .am-form{margin-top:14px;}
+  .am-form-errors{
+    margin:10px 0;padding:12px 14px;border-radius:14px;
+    border:1px solid rgba(220,38,38,.35);
+    background:rgba(220,38,38,.12);
+    color:#fff;font-weight:800;
+  }
+
+  .am-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .am-grid1{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px;}
+
+  .am-field{background:rgba(20,24,60,.22);border:1px solid rgba(49,46,129,.25);border-radius:18px;padding:14px;}
+  .am-hint{margin-top:10px;color:#cbd5f5;opacity:.85;font-weight:700;font-size:12px;}
+
+  .am-field input,
+  .am-field select,
+  .am-field textarea{
+    width:100%;
+    padding:12px 14px;
+    background:rgba(5,8,20,.35);
+    border:1px solid rgba(49,46,129,.35);
+    border-radius:14px;
+    color:#fff;
+    outline:none;
+  }
+  .am-field input:focus,
+  .am-field select:focus,
+  .am-field textarea:focus{
+    border-color:rgba(168,85,247,.55);
+    box-shadow:0 0 0 3px rgba(168,85,247,.12);
+  }
+
+  /* erreurs champs Symfony */
+  .am-field ul{margin:10px 0 0;padding-left:18px;color:#ff8a8a;font-weight:800;}
+  .am-field li{margin:4px 0;}
+
+  .am-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:12px 16px;border-radius:16px;font-weight:900;
+    color:#fff;text-decoration:none;border:1px solid transparent;
+    cursor:pointer;white-space:nowrap;transition:.15s transform,.15s opacity;
+  }
+  .am-btn-primary{background:linear-gradient(90deg,var(--purple),var(--blue));}
+  .am-btn:hover{opacity:.96;transform:translateY(-1px);}
+  .am-btn-block{width:100%;margin-top:14px;}
+
+  @media (max-width: 900px){ .am-grid2{grid-template-columns:1fr;} }
 </style>
-
-{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'am-form'}}) }}
-  {{ form_errors(form) }}
-
-  <div class="am-field">
-    <span class="am-label">{{ form_label(form.name) }}</span>
-    {{ form_widget(form.name) }}
-    <div class="am-errors">{{ form_errors(form.name) }}</div>
-  </div>
-
-  <div class="am-grid2">
-    <div class="am-field">
-      <span class="am-label">{{ form_label(form.game) }}</span>
-      {{ form_widget(form.game) }}
-      <div class="am-errors">{{ form_errors(form.game) }}</div>
-    </div>
-
-    <div class="am-field">
-      <span class="am-label">{{ form_label(form.status) }}</span>
-      {{ form_widget(form.status) }}
-      <div class="am-errors">{{ form_errors(form.status) }}</div>
-    </div>
-  </div>
-
-  <div class="am-grid2">
-    <div class="am-field">
-      <span class="am-label">{{ form_label(form.startAt) }}</span>
-      {{ form_widget(form.startAt) }}
-      <div class="am-errors">{{ form_errors(form.startAt) }}</div>
-    </div>
-
-    <div class="am-field">
-      <span class="am-label">{{ form_label(form.checkInAt) }}</span>
-      {{ form_widget(form.checkInAt) }}
-      <div class="am-errors">{{ form_errors(form.checkInAt) }}</div>
-    </div>
-  </div>
-
-  <div class="am-grid2">
-    <div class="am-field">
-      <span class="am-label">{{ form_label(form.slots) }}</span>
-      {{ form_widget(form.slots) }}
-      <div class="am-errors">{{ form_errors(form.slots) }}</div>
-    </div>
-
-    <div class="am-field">
-      <span class="am-label">{{ form_label(form.format) }}</span>
-      {{ form_widget(form.format) }}
-      <div class="am-errors">{{ form_errors(form.format) }}</div>
-    </div>
-  </div>
-
-  <div class="am-grid2">
-    <div class="am-field">
-      <span class="am-label">{{ form_label(form.prize) }}</span>
-      {{ form_widget(form.prize) }}
-      <div class="am-errors">{{ form_errors(form.prize) }}</div>
-    </div>
-
-    <div class="am-field">
-      <span class="am-label">{{ form_label(form.rules) }}</span>
-      {{ form_widget(form.rules) }}
-      <div class="am-errors">{{ form_errors(form.rules) }}</div>
-    </div>
-  </div>
-
-  <div class="am-actions">
-    <button class="am-btn am-btn--primary" type="submit">{{ button_label|default('Save') }}</button>
-    <a class="am-btn" href="{{ path('am_tournament_index') }}">Cancel</a>
-  </div>
-{{ form_end(form) }}
