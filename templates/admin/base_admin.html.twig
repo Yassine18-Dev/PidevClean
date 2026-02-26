@@ -36,7 +36,7 @@
     nav a.nav-support{padding:6px 14px;border-radius:10px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);transition:all .2s ease;}
     nav a.nav-support:hover{background:rgba(168,85,247,.25);border-color:rgba(168,85,247,.5);color:#e9d5ff;}
     nav a.nav-support.active{background:rgba(168,85,247,.22);border-color:var(--purple);color:#e9d5ff;}
-
+    nav a.nav-support i{margin-right:5px;}
   </style>
 </head>
 <body>
@@ -48,7 +48,7 @@
     <a href="{{ path('ui_admin_users') }}">Users</a>
     <a href="{{ path('ui_profile') }}">Front</a>
     <a href="{{ path('support_role_select') }}" class="nav-support{% if app.request.get('_route') starts with 'support_' %} active{% endif %}" aria-label="Support">
-      Support
+      <i class="fa-solid fa-life-ring"></i> Support
     </a>
     <a href="{{ path('ui_logout') }}">Logout</a>
   </div>

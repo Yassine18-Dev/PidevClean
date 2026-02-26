@@ -5,49 +5,162 @@
   <title>ArenaMind • Support Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="{{ asset('css/support.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-<body class="support-body role-select-body">
+<body class="support-body hc-body">
 
-  <div class="role-select-container">
-    <div class="role-header">
-      <div class="role-logo">🛡️ ArenaMind</div>
-      <h1 class="role-title">Support Center</h1>
-      <p class="role-subtitle">Select your portal to get started</p>
-    </div>
+  <!-- SUPPORT PAGE WRAPPER -->
+  <div class="hc-layout">
 
-    <div class="role-cards">
-      {# ═══ USER PORTAL ═══ #}
-      <a href="{{ path('support_user_tickets') }}" class="role-card role-card--user">
-        <div class="role-card-glow"></div>
-        <div class="role-card-icon">🎮</div>
-        <h2 class="role-card-title">User Support</h2>
-        <p class="role-card-desc">Submit tickets, track status, and chat with our AI assistant for instant help.</p>
-        <div class="role-card-features">
-          <span>🎫 Submit Tickets</span>
-          <span>📊 Track Status</span>
-          <span>🤖 AI Chat</span>
+    <!-- LEFT SIDEBAR -->
+    <aside class="hc-sidebar">
+      <div class="hc-sidebar-brand">
+        <span class="hc-sidebar-logo">🛡️</span>
+        <span class="hc-sidebar-name">ArenaMind</span>
+      </div>
+      <nav class="hc-sidebar-nav">
+        <a href="{{ path('ui_profile') }}" class="hc-sidebar-link">
+          <span class="hc-sidebar-icon">🏠</span> Home
+        </a>
+        <a href="{{ path('support_admin_dashboard') }}" class="hc-sidebar-link">
+          <span class="hc-sidebar-icon">📊</span> Dashboard
+        </a>
+        <a href="{{ path('support_user_tickets') }}" class="hc-sidebar-link">
+          <span class="hc-sidebar-icon">🎫</span> My Tickets
+        </a>
+        <a href="{{ path('support_chatbot') }}" class="hc-sidebar-link">
+          <span class="hc-sidebar-icon">💬</span> Messages
+        </a>
+        <a href="{{ path('support_admin_categories') }}" class="hc-sidebar-link">
+          <span class="hc-sidebar-icon">📁</span> Categories
+        </a>
+        <a href="{{ path('support_admin_analytics') }}" class="hc-sidebar-link">
+          <span class="hc-sidebar-icon">📈</span> Analytics
+        </a>
+        <a href="{{ path('ui_profile') }}" class="hc-sidebar-link">
+          <span class="hc-sidebar-icon">⚙️</span> Settings
+        </a>
+      </nav>
+
+      <!-- FLOATING SUPPORT WIDGET (bottom of sidebar) -->
+      <div class="hc-widget-area">
+        <div class="hc-widget-character">🧑‍💻</div>
+        <a href="{{ path('support_chatbot') }}" class="hc-support-widget">
+          <span class="hc-widget-badge">24</span>
+          <span>Support</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="hc-main">
+
+      <!-- HERO SECTION -->
+      <section class="hc-hero">
+        <div class="hc-hero-content">
+          <h1 class="hc-hero-title">Welcome to ArenaMind Support</h1>
+          <div class="hc-hero-search-row">
+            <div class="hc-search-bar">
+              <span class="hc-search-icon">🔍</span>
+              <input type="text" class="hc-search-input" placeholder="How can we help you?">
+            </div>
+            <a href="{{ path('support_user_ticket_new') }}" class="hc-hero-btn">CREATE TICKET</a>
+          </div>
         </div>
-        <div class="role-card-arrow">→</div>
-      </a>
-
-      {# ═══ ADMIN PORTAL ═══ #}
-      <a href="{{ path('support_admin_dashboard') }}" class="role-card role-card--admin">
-        <div class="role-card-glow"></div>
-        <div class="role-card-icon">⚙️</div>
-        <h2 class="role-card-title">Admin Panel</h2>
-        <p class="role-card-desc">Manage tickets, view analytics, and oversee the complete support lifecycle.</p>
-        <div class="role-card-features">
-          <span>📊 Dashboard</span>
-          <span>🎫 Manage</span>
-          <span>📈 Analytics</span>
+        <div class="hc-hero-illustration">
+          <svg width="180" height="130" viewBox="0 0 180 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="10" width="100" height="70" rx="8" stroke="rgba(168,85,247,0.3)" stroke-width="1.5" fill="rgba(168,85,247,0.05)"/>
+            <rect x="55" y="24" width="40" height="4" rx="2" fill="rgba(168,85,247,0.15)"/>
+            <rect x="55" y="34" width="60" height="4" rx="2" fill="rgba(59,130,246,0.15)"/>
+            <rect x="55" y="44" width="50" height="4" rx="2" fill="rgba(168,85,247,0.12)"/>
+            <circle cx="128" cy="38" r="12" fill="rgba(59,130,246,0.1)"/>
+            <circle cx="128" cy="38" r="6" fill="rgba(59,130,246,0.25)"/>
+            <rect x="20" y="90" width="60" height="30" rx="6" stroke="rgba(59,130,246,0.3)" stroke-width="1.5" fill="rgba(59,130,246,0.05)"/>
+            <rect x="30" y="100" width="30" height="3" rx="1.5" fill="rgba(59,130,246,0.2)"/>
+            <rect x="30" y="108" width="40" height="3" rx="1.5" fill="rgba(168,85,247,0.15)"/>
+            <rect x="100" y="85" width="60" height="35" rx="8" stroke="rgba(168,85,247,0.3)" stroke-width="1.5" fill="rgba(168,85,247,0.05)"/>
+            <circle cx="115" cy="100" r="8" fill="rgba(168,85,247,0.12)"/>
+            <rect x="128" y="96" width="24" height="3" rx="1.5" fill="rgba(59,130,246,0.2)"/>
+            <rect x="128" y="103" width="18" height="3" rx="1.5" fill="rgba(168,85,247,0.15)"/>
+            <circle cx="15" cy="50" r="5" fill="rgba(168,85,247,0.12)"/>
+            <circle cx="170" cy="65" r="4" fill="rgba(59,130,246,0.15)"/>
+            <circle cx="90" cy="90" r="3" fill="rgba(168,85,247,0.1)"/>
+          </svg>
         </div>
-        <div class="role-card-arrow">→</div>
-      </a>
-    </div>
+      </section>
 
-    <div class="role-footer">
-      <a href="{{ path('ui_profile') }}" class="role-back-link">← Back to Profile</a>
-    </div>
+      <!-- HELP CATEGORIES SECTION -->
+      <section class="hc-section">
+        <h2 class="hc-section-title">Need help? We've got your back</h2>
+        <p class="hc-section-subtitle">Perhaps you can find the answers in our collections</p>
+
+        <div class="hc-cards-grid">
+          {# ═══ Row 1 ═══ #}
+          <a href="{{ path('support_user_tickets') }}" class="hc-card">
+            <div class="hc-card-icon hc-icon--purple">🎫</div>
+            <h3 class="hc-card-title hc-title--purple">My Tickets</h3>
+            <p class="hc-card-desc">Track the status of your submitted support tickets</p>
+          </a>
+
+          <a href="{{ path('support_user_ticket_new') }}" class="hc-card">
+            <div class="hc-card-icon hc-icon--blue">✏️</div>
+            <h3 class="hc-card-title hc-title--blue">New Ticket</h3>
+            <p class="hc-card-desc">Submit a new request and our team will handle it</p>
+          </a>
+
+          <a href="{{ path('support_chatbot') }}" class="hc-card">
+            <div class="hc-card-icon hc-icon--green">🤖</div>
+            <h3 class="hc-card-title hc-title--green">AI Chat</h3>
+            <p class="hc-card-desc">Get instant answers from our smart AI assistant</p>
+          </a>
+
+          <a href="{{ path('support_admin_dashboard') }}" class="hc-card">
+            <div class="hc-card-icon hc-icon--coral">📊</div>
+            <h3 class="hc-card-title hc-title--coral">Dashboard</h3>
+            <p class="hc-card-desc">Overview of all support operations at a glance</p>
+          </a>
+
+          {# ═══ Row 2 ═══ #}
+          <a href="{{ path('support_admin_tickets') }}" class="hc-card">
+            <div class="hc-card-icon hc-icon--red">🔍</div>
+            <h3 class="hc-card-title hc-title--red">Manage Tickets</h3>
+            <p class="hc-card-desc">Search, filter and manage all support tickets</p>
+          </a>
+
+          <a href="{{ path('support_admin_analytics') }}" class="hc-card">
+            <div class="hc-card-icon hc-icon--teal">📈</div>
+            <h3 class="hc-card-title hc-title--teal">Analytics</h3>
+            <p class="hc-card-desc">View comprehensive ticket trends and insights</p>
+          </a>
+
+          <a href="{{ path('support_admin_categories') }}" class="hc-card">
+            <div class="hc-card-icon hc-icon--amber">📁</div>
+            <h3 class="hc-card-title hc-title--amber">Categories</h3>
+            <p class="hc-card-desc">Browse and manage ticket categories</p>
+          </a>
+
+          <a href="{{ path('ui_profile') }}" class="hc-card">
+            <div class="hc-card-icon hc-icon--indigo">⚙️</div>
+            <h3 class="hc-card-title hc-title--indigo">Account Settings</h3>
+            <p class="hc-card-desc">Manage your profile and preferences</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <div class="hc-footer">
+        <a href="{{ path('ui_profile') }}" class="hc-footer-back">← Back to Profile</a>
+        <div class="hc-footer-right">
+          <span class="hc-footer-text">Other ways to find help:</span>
+          <div class="hc-footer-links">
+            <a href="{{ path('support_chatbot') }}" class="hc-footer-link" title="AI Chat">🤖</a>
+            <a href="{{ path('support_role_select') }}" class="hc-footer-link" title="Support Hub">🛡️</a>
+            <a href="{{ path('ui_profile') }}" class="hc-footer-link" title="Profile">👤</a>
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
 
 </body>
