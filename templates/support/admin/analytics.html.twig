@@ -1,0 +1,143 @@
+{% extends 'support/base_support_admin.html.twig' %}
+{% block title %}Analytics{% endblock %}
+
+{% block body %}
+<div class="page-header">
+  <h1>📈 Support Analytics</h1>
+  <p class="page-subtitle">Comprehensive overview of ticket trends and distribution</p>
+</div>
+
+{# ═══ STAT CARDS ═══ #}
+<div class="stats-grid">
+  <div class="stat-card stat-card--total">
+    <div class="stat-icon">🎫</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total }}</div>
+      <div class="stat-label">Total Tickets</div>
+    </div>
+  </div>
+  <div class="stat-card stat-card--open">
+    <div class="stat-icon">🔓</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.open }}</div>
+      <div class="stat-label">Open</div>
+    </div>
+  </div>
+  <div class="stat-card stat-card--resolved">
+    <div class="stat-icon">✅</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.resolved }}</div>
+      <div class="stat-label">Resolved</div>
+    </div>
+  </div>
+  <div class="stat-card stat-card--rejected">
+    <div class="stat-icon">❌</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.rejected }}</div>
+      <div class="stat-label">Rejected</div>
+    </div>
+  </div>
+</div>
+
+{# ═══ THREE CHARTS ═══ #}
+<div class="charts-row">
+  <div class="chart-card">
+    <h3 class="chart-title">📊 Tickets by Category</h3>
+    <canvas id="analyticsCatChart" height="280"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3 class="chart-title">🍩 Status Distribution</h3>
+    <canvas id="analyticsStatusChart" height="280"></canvas>
+  </div>
+</div>
+<div class="chart-card chart-card--full">
+  <h3 class="chart-title">📈 Ticket Trends (Last 30 Days)</h3>
+  <canvas id="analyticsTrendChart" height="200"></canvas>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+  const colors = {
+    purple: '#a855f7', blue: '#3b82f6', red: '#ef4444',
+    amber: '#f59e0b', green: '#10b981', indigo: '#6366f1'
+  };
+
+  // Fetch data
+  const [catRes, statusRes, trendRes] = await Promise.all([
+    fetch('{{ path("api_support_analytics_categories") }}').then(r => r.json()),
+    fetch('{{ path("api_support_analytics_status") }}').then(r => r.json()),
+    fetch('{{ path("api_support_analytics_trends") }}').then(r => r.json()),
+  ]);
+
+  // Bar Chart
+  new Chart(document.getElementById('analyticsCatChart'), {
+    type: 'bar',
+    data: {
+      labels: catRes.labels,
+      datasets: [{
+        label: 'Tickets',
+        data: catRes.values,
+        backgroundColor: [colors.purple, colors.blue, colors.red, colors.amber, colors.green, colors.indigo],
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+      }
+    }
+  });
+
+  // Doughnut Chart
+  new Chart(document.getElementById('analyticsStatusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: statusRes.labels,
+      datasets: [{
+        data: statusRes.values,
+        backgroundColor: [colors.amber, colors.blue, colors.green, colors.red],
+        borderWidth: 0,
+        hoverOffset: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '60%',
+      plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', padding: 16 } } }
+    }
+  });
+
+  // Line Chart — Trends
+  new Chart(document.getElementById('analyticsTrendChart'), {
+    type: 'line',
+    data: {
+      labels: trendRes.labels.map(d => d.slice(5)),
+      datasets: [{
+        label: 'New Tickets',
+        data: trendRes.values,
+        borderColor: colors.purple,
+        backgroundColor: 'rgba(168,85,247,0.15)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3,
+        pointBackgroundColor: colors.purple,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: '#9ca3af' } } },
+      scales: {
+        x: { ticks: { color: '#9ca3af', maxTicksLimit: 15 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

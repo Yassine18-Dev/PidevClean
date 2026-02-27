@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ticket Details • ArenaMind Support</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ asset('css/support.css') }}">
+</head>
+<body class="support-body">
+
+  {# ═══ USER NAV ═══ #}
+  <nav class="user-nav">
+    <a href="{{ path('support_role_select') }}" class="user-nav-logo">🛡️ ArenaMind Support</a>
+    <div class="user-nav-links">
+      <a href="{{ path('support_user_tickets') }}" class="user-nav-link">🎫 My Tickets</a>
+      <a href="{{ path('support_user_ticket_new') }}" class="user-nav-link">➕ New Ticket</a>
+      <a href="{{ path('support_chatbot') }}" class="user-nav-link">🤖 AI Chat</a>
+      <a href="{{ path('support_role_select') }}" class="user-nav-link">↩️ Hub</a>
+    </div>
+  </nav>
+
+  <div class="user-content">
+    <div class="page-header">
+      <a href="{{ path('support_user_tickets') }}" class="back-link">← Back to My Tickets</a>
+      <h1>🎫 Ticket #{{ ticket.id }}</h1>
+    </div>
+
+    <div class="detail-card">
+      <h3 class="utc-subject">{{ ticket.subject }}</h3>
+      <div class="utc-meta">
+        <span class="status-badge status-{{ ticket.status }}">{{ ticket.statusLabel }}</span>
+        <span class="priority-badge priority-{{ ticket.priority }}">{{ ticket.priorityLabel }}</span>
+        <span class="category-badge" style="border-color:{{ ticket.category.color }}">{{ ticket.category.icon }} {{ ticket.category.name }}</span>
+      </div>
+      <div class="utc-date">Created on {{ ticket.createdAt|date('M d, Y H:i') }}</div>
+      
+      <div class="detail-description">
+        <h4>Description</h4>
+        <p>{{ ticket.description|nl2br }}</p>
+      </div>
+
+      {% if ticket.adminNotes %}
+      <div class="admin-feedback">
+        <h4>🛡️ Admin Feedback</h4>
+        <p>{{ ticket.adminNotes|nl2br }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-tip">
+      <h4>💡 Need instant help?</h4>
+      <p>Try our <a href="{{ path('support_chatbot') }}">AI Chat Assistant</a> — it solves many issues instantly!</p>
+    </div>
+  </div>
+
+</body>
+</html>

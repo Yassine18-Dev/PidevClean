@@ -1,0 +1,33 @@
+framework:
+    workflows:
+        ticket_lifecycle:
+            type: 'state_machine'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type: 'method'
+                property: 'status'
+            supports:
+                - App\Entity\Ticket
+            initial_marking: pending
+            places:
+                - pending
+                - in_progress
+                - resolved
+                - rejected
+            transitions:
+                start_progress:
+                    from: pending
+                    to: in_progress
+                resolve:
+                    from: in_progress
+                    to: resolved
+                reject_from_pending:
+                    from: pending
+                    to: rejected
+                reject_from_progress:
+                    from: in_progress
+                    to: rejected
+                reopen:
+                    from: [resolved, rejected]
+                    to: pending

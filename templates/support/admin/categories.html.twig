@@ -1,0 +1,27 @@
+{% extends 'support/base_support_admin.html.twig' %}
+{% block title %}Categories{% endblock %}
+
+{% block body %}
+<div class="page-header">
+  <h1>📁 Ticket Categories</h1>
+  <p class="page-subtitle">Manage categories for support tickets</p>
+</div>
+
+<div class="categories-grid">
+  {% for cat in categories %}
+  <div class="category-card" style="border-color: {{ cat.color }}">
+    <div class="category-header">
+      <span class="category-icon">{{ cat.icon }}</span>
+      <h3 class="category-name">{{ cat.name }}</h3>
+    </div>
+    <p class="category-desc">{{ cat.description }}</p>
+    <div class="category-footer">
+      <span class="category-count">{{ cat.tickets|length }} tickets</span>
+      <span class="category-color-dot" style="background:{{ cat.color }}"></span>
+    </div>
+  </div>
+  {% else %}
+    <p class="empty-message">No categories found.</p>
+  {% endfor %}
+</div>
+{% endblock %}

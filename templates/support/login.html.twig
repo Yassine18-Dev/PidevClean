@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login • ArenaMind Support</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ asset('css/support.css') }}">
+  <style>
+    .login-body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .login-logo {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    .login-title {
+      font-size: 28px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #a855f7, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+    .login-subtitle {
+      color: #9ca3af;
+      font-size: 14px;
+    }
+    .login-card {
+      background: rgba(20, 24, 60, 0.95);
+      border: 1px solid rgba(49, 46, 129, 0.55);
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 0 60px rgba(168, 85, 247, 0.15);
+    }
+    .login-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #ef4444;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .login-group {
+      margin-bottom: 20px;
+    }
+    .login-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .login-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(11, 15, 46, 0.8);
+      border: 1px solid rgba(49, 46, 129, 0.55);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.25s ease;
+    }
+    .login-input:focus {
+      border-color: #a855f7;
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+    }
+    .login-input::placeholder {
+      color: #6b7280;
+    }
+    .login-btn {
+      width: 100%;
+      padding: 15px 0;
+      background: linear-gradient(135deg, #a855f7, #3b82f6);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-weight: 900;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      margin-top: 8px;
+    }
+    .login-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+    }
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+    .login-footer a {
+      color: #a855f7;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .login-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body class="support-body login-body">
+
+  <div class="login-container">
+    <div class="login-header">
+      <div class="login-logo">🛡️</div>
+      <h1 class="login-title">ArenaMind Support</h1>
+      <p class="login-subtitle">Sign in to access the Support Center</p>
+    </div>
+
+    <div class="login-card">
+      {% if error %}
+        <div class="login-error">⚠️ {{ error.messageKey|trans(error.messageData, 'security') }}</div>
+      {% endif %}
+
+      <form method="POST" action="{{ path('ui_login') }}">
+        <input type="hidden" name="_target_path" value="{{ path('support_role_select') }}">
+
+        <div class="login-group">
+          <label class="login-label">📧 Email</label>
+          <input type="email" name="_username" value="{{ last_username }}" 
+                 class="login-input" placeholder="Enter your email" required autofocus>
+        </div>
+
+        <div class="login-group">
+          <label class="login-label">🔒 Password</label>
+          <input type="password" name="_password" 
+                 class="login-input" placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit" class="login-btn">🚀 Sign In to Support</button>
+      </form>
+    </div>
+
+    <div class="login-footer">
+      Don't have an account? <a href="{{ path('ui_register') }}">Register here</a>
+    </div>
+  </div>
+
+</body>
+</html>
