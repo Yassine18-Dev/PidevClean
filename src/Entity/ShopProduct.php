@@ -19,24 +19,24 @@ class ShopProduct
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le nom du produit est obligatoire')]
     #[Assert\Length(min: 3, max: 255, minMessage: 'Le nom doit faire au moins 3 caractères', maxMessage: 'Le nom ne peut pas dépasser 255 caractères')]
-    private string $name;
+    private string $name= '';
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     #[Assert\NotBlank(message: 'Le prix est obligatoire')]
     #[Assert\Positive(message: 'Le prix doit être un nombre positif')]
     #[Assert\LessThan(value: 10000, message: 'Le prix ne peut pas dépasser 10 000 €')]
-    private float $price;
+    private string $price = '0.00';
 
     #[ORM\Column(length: 20)]
     #[Assert\NotBlank(message: 'Le type est obligatoire')]
     #[Assert\Choice(choices: ['skin', 'merch'], message: 'Le type doit être "skin" ou "merch"')]
-    private string $type; // merch | skin
+    private string $type= ''; // merch | skin
 
     #[ORM\Column]
     private bool $isActive = true;
 
     #[ORM\Column(type: 'datetime')]
-    private ?\DateTimeInterface $createdAt = null;
+    private \DateTimeInterface $createdAt;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
@@ -63,14 +63,25 @@ class ShopProduct
         return $this;
     }
 
-    public function getPrice(): ?float
+    public function getPrice(): string
     {
         return $this->price;
     }
 
-    public function setPrice(float $price): self
+    public function setPrice(string $price): self
     {
         $this->price = $price;
+        return $this;
+    }
+
+    public function getPriceAsFloat(): float
+    {
+        return (float) $this->price;
+    }
+
+    public function setPriceFromFloat(float $price): self
+    {
+        $this->price = number_format($price, 2, '.', '');
         return $this;
     }
 
@@ -108,7 +119,7 @@ public function setImage(?string $image): self
     $this->image = $image;
     return $this;
 }
-    #[ORM\OneToMany(mappedBy: "product", targetEntity: ShopProductImage::class, cascade: ["persist", "remove"])]
+    #[ORM\OneToMany(mappedBy: "product", targetEntity: ShopProductImage::class, cascade: ["persist", "remove"], orphanRemoval: true)]
 private Collection $images;
 
 
@@ -237,15 +248,15 @@ public function getBestPromotion(): ?Promotion
 }
 
 public function getFinalPrice(): float
-{
-    $bestPromotion = $this->getBestPromotion();
-    
-    if ($bestPromotion) {
-        return $bestPromotion->getFinalPrice($this->price);
+    {
+        $bestPromotion = $this->getBestPromotion();
+        
+        if ($bestPromotion) {
+            return (float) $bestPromotion->getFinalPrice($this->price);
+        }
+        
+        return (float) $this->price;
     }
-    
-    return $this->price;
-}
 
 public function getDiscountAmount(): float
 {
@@ -270,15 +281,15 @@ public function getFormattedDiscount(): string
 }
 
 public function getCreatedAt(): \DateTimeInterface
-{
-    return $this->createdAt;
-}
+    {
+        return $this->createdAt;
+    }
 
 public function setCreatedAt(\DateTimeInterface $createdAt): self
-{
-    $this->createdAt = $createdAt;
-    return $this;
-}
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
 
 public function getUpdatedAt(): ?\DateTimeInterface
 {

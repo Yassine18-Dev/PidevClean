@@ -16,6 +16,7 @@
                     <th>Quantité</th>
                     <th>Prix unitaire</th>
                     <th>Total</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -66,6 +67,19 @@
                             {% else %}
                                 {{ lineTotalOriginal }} €
                             {% endif %}
+                        </td>
+                        <td>
+                            <form method="post" action="{{ path('cart_remove', {'cartKey': cartKey}) }}" 
+                                  style="display: inline;" 
+                                  onsubmit="removeCartItem(event, this, '{{ cartKey }}')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('remove' ~ cartKey) }}">
+                                <button type="submit" 
+                                        class="btn btn-danger btn-sm" 
+                                        style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;"
+                                        title="Supprimer cet article">
+                                    🗑️
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 {% endfor %}
@@ -144,23 +158,14 @@
                     {% endif %}
                 </div>
                 
-                {# BOUTON PAYER #}
+                {# BOUTON PAYER FONCTIONNEL #}
                 <div style="margin-top: 15px;">
-                    <button id="show-payment-btn" style="
-                        background: linear-gradient(45deg, #10b981, #059669);
-                        color: white;
-                        border: none;
-                        padding: 15px 40px;
-                        border-radius: 8px;
-                        font-size: 1.1rem;
-                        font-weight: bold;
-                        cursor: pointer;
-                        transition: all 0.3s;
-                        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
-                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16, 185, 129, 0.4)';" 
-                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(16, 185, 129, 0.3)';">
-                        💳 Payer maintenant
-                    </button>
+                    <a href="{{ path('payment') }}" class="btn btn-primary btn-large" style="background: linear-gradient(45deg, #10b981, #059669); color: white; border: none; padding: 15px 40px; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; text-decoration: none; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.1);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(16, 185, 129, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(16, 185, 129, 0.3)';">
+                        � Procéder au paiement
+                    </a>
+                    <a href="{{ path('cart_clear') }}" class="btn btn-secondary" onclick="return confirm('Êtes-vous sûr de vouloir vider votre panier ?');">
+                        🗑️ Vider le panier
+                    </a>
                 </div>
             </div>
         {% else %}
@@ -231,5 +236,111 @@
         document.getElementById('close-payment').addEventListener('click', function() {
             document.getElementById('payment-modal').style.display = 'none';
         });
+
+        // Fonction pour supprimer un article du panier
+        function removeCartItem(event, form, cartKey) {
+            event.preventDefault();
+            
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cet article du panier ?')) {
+                return;
+            }
+
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Supprimer la ligne du tableau
+                    const row = form.closest('tr');
+                    row.style.transition = 'opacity 0.3s';
+                    row.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        row.remove();
+                        
+                        // Mettre à jour les totaux
+                        updateCartTotals(data);
+                        
+                        // Mettre à jour le slider du panier s'il existe
+                        updateCartSlider(data);
+                        
+                        // Si le panier est vide, recharger la page
+                        if (data.count === 0) {
+                            setTimeout(() => {
+                                location.reload();
+                            }, 500);
+                        }
+                    }, 300);
+                } else {
+                    alert('Erreur lors de la suppression de l\'article');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erreur technique lors de la suppression');
+            });
+        }
+
+        // Mettre à jour les totaux du panier
+        function updateCartTotals(data) {
+            // Mettre à jour le total affiché
+            const totalElements = document.querySelectorAll('[style*="font-size: 1.8rem; font-weight: bold;"]');
+            totalElements.forEach(element => {
+                if (element.textContent.includes('€')) {
+                    element.textContent = data.total + ' €';
+                }
+            });
+
+            // Mettre à jour le compteur d'articles dans le header si présent
+            const cartCounters = document.querySelectorAll('.cart-counter, .cart-count');
+            cartCounters.forEach(counter => {
+                counter.textContent = data.count;
+            });
+        }
+
+        // Mettre à jour le slider du panier (s'il existe sur la page)
+        function updateCartSlider(data) {
+            // Chercher le slider du panier dans les autres composants
+            const cartSlider = document.querySelector('.cart-slider, .cart-items, .mini-cart');
+            if (cartSlider) {
+                // Envoyer un événement personnalisé pour mettre à jour le slider
+                const event = new CustomEvent('cartUpdated', {
+                    detail: {
+                        count: data.count,
+                        total: data.total,
+                        items: data.items || []
+                    }
+                });
+                document.dispatchEvent(event);
+            }
+        }
+
+        // Écouter les mises à jour du panier
+        document.addEventListener('cartUpdated', function(event) {
+            const cartData = event.detail;
+            console.log('Panier mis à jour:', cartData);
+            
+            // Mettre à jour l'affichage du slider si nécessaire
+            const sliderContent = document.querySelector('.cart-slider-content');
+            if (sliderContent) {
+                if (cartData.count === 0) {
+                    sliderContent.innerHTML = '<div class="text-center p-4"><p>Votre panier est vide</p></div>';
+                } else {
+                    // Mettre à jour le contenu avec les nouvelles données
+                    updateSliderContent(cartData);
+                }
+            }
+        });
+
+        function updateSliderContent(cartData) {
+            // Logique pour mettre à jour le contenu du slider
+            // À implémenter selon la structure exacte du slider
+            console.log('Mise à jour du slider avec:', cartData);
+        }
     </script>
 {% endblock %}

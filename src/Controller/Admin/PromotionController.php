@@ -30,7 +30,9 @@ class PromotionController extends AbstractController
     #[Route('/', name: 'admin_promotion_index')]
     public function index(): Response
     {
-        $promotions = $this->em->getRepository(Promotion::class)->findAll();
+        // Limiter à 20 promotions pour éviter les problèmes de performance
+        $promotions = $this->em->getRepository(Promotion::class)
+            ->findBy([], ['createdAt' => 'DESC'], 20);
         
         return $this->render('admin/promotion/index.html.twig', [
             'promotions' => $promotions
@@ -194,7 +196,7 @@ class PromotionController extends AbstractController
         $totalFinal = 0;
         
         foreach ($products as $product) {
-            $originalPrice = $product->getPrice();
+            $originalPrice = $product->getPriceAsFloat();
             $totalOriginal += $originalPrice;
             
             if ($discountType === 'percentage') {

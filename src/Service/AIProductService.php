@@ -10,14 +10,14 @@ use OpenAI;
 class AIProductService
 {
     private string $openaiApiKey;
-    private EntityManagerInterface $em;
     private ShopProductRepository $productRepository;
+    private EntityManagerInterface $entityManager;
 
-    public function __construct(string $openaiApiKey, EntityManagerInterface $em, ShopProductRepository $productRepository)
+    public function __construct(string $openaiApiKey, ShopProductRepository $productRepository, EntityManagerInterface $entityManager)
     {
         $this->openaiApiKey = $openaiApiKey;
-        $this->em = $em;
         $this->productRepository = $productRepository;
+        $this->entityManager = $entityManager;
     }
 
     /**
@@ -59,7 +59,9 @@ class AIProductService
 
             $recommendations = array_filter(
                 explode("\n", $response->choices[0]->message->content),
-                'trim'
+                function(string $value): bool {
+                    return !empty(trim($value));
+                }
             );
 
             // Rechercher les produits correspondants dans la base de données
@@ -140,7 +142,9 @@ class AIProductService
 
             $recommendations = array_filter(
                 explode("\n", $response->choices[0]->message->content),
-                'trim'
+                function(string $value): bool {
+                    return !empty(trim($value));
+                }
             );
 
             // Rechercher les produits correspondants dans la base de données
@@ -278,12 +282,19 @@ class AIProductService
             }
         }
 
-        // Logique simple de recommandation par type
-        if ($userType === 'skin') {
-            return $this->productRepository->findBy(['type' => 'merch', 'isActive' => true], ['price' => 'ASC'], $limit);
-        } else {
-            return $this->productRepository->findBy(['type' => 'skin', 'isActive' => true], ['price' => 'ASC'], $limit);
-        }
+        // Logique simple de recommandation par type avec eager loading pour éviter N+1
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('p', 'i')
+           ->from(ShopProduct::class, 'p')
+           ->leftJoin('p.images', 'i')
+           ->where('p.type = :type')
+           ->andWhere('p.isActive = :active')
+           ->setParameter('type', $userType === 'skin' ? 'merch' : 'skin')
+           ->setParameter('active', true)
+           ->orderBy('p.price', 'ASC')
+           ->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
     }
 
     /**

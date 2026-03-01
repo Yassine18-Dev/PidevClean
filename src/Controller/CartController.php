@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Entity\User;
+
 
 class CartController extends AbstractController
 {
@@ -123,27 +125,31 @@ class CartController extends AbstractController
                 $productId = (int) $parts[0];
                 $sizeId = isset($parts[1]) ? (int) $parts[1] : null;
                 
-                $product = $em->getRepository(\App\Entity\ShopProduct::class)->find($productId);
+                $product = $em->getRepository(ShopProduct::class)->find($productId);
                 if ($product) {
                     $itemTotal = $product->getPrice() * $quantity;
                     $total += $itemTotal;
                     $count += $quantity;
                     
+                    $sizeName = '';
+                    if ($sizeId) {
+                        $size = $em->getRepository(\App\Entity\Size::class)->find($sizeId);
+                        if ($size) {
+                            $sizeName = $size->getName();
+                            $sizes[$cartKey] = $size;
+                        }
+                    }
+                    
                     $products[] = [
+                        'cartKey' => $cartKey, // Ajout du cartKey pour la suppression
                         'id' => $productId,
                         'name' => $product->getName(),
                         'price' => $product->getPrice(),
                         'quantity' => $quantity,
                         'total' => $itemTotal,
-                        'image' => $product->getImage()
+                        'image' => $product->getImage(),
+                        'size' => $sizeName // Ajout de la taille pour l'affichage
                     ];
-                    
-                    if ($sizeId) {
-                        $size = $em->getRepository(\App\Entity\Size::class)->find($sizeId);
-                        if ($size) {
-                            $sizes[$cartKey] = $size;
-                        }
-                    }
                 }
             }
         }
@@ -180,8 +186,8 @@ public function checkout(SessionInterface $session, EntityManagerInterface $em):
 {
     try {
         $user = $this->getUser();
-        if (!$user) {
-            return $this->json(['success' => false, 'error' => 'Vous devez être connecté'], 403);
+        if (!$user instanceof User) {
+            return $this->json(['success' => false, 'error' => 'Utilisateur non connecté'], 401);
         }
 
         $cart = $session->get('cart', []);
@@ -240,13 +246,29 @@ public function checkout(SessionInterface $session, EntityManagerInterface $em):
         return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
     }
 }
-#[Route('/cart/remove/{id}', name: 'cart_remove', methods: ['POST'])]
-public function remove($id, SessionInterface $session, EntityManagerInterface $em): JsonResponse
+#[Route('/cart/remove/{cartKey}', name: 'cart_remove', methods: ['POST'])]
+public function remove(string $cartKey, SessionInterface $session, EntityManagerInterface $em): JsonResponse
 {
     $cart = $session->get('cart', []);
 
-    if (isset($cart[$id])) {
-        unset($cart[$id]);
+    // Si le cartKey est un ID simple (ex: "10"), chercher dans le panier
+    if (is_numeric($cartKey)) {
+        $foundKey = null;
+        foreach ($cart as $key => $quantity) {
+            $parts = explode('_', $key);
+            if ((int) $parts[0] === (int) $cartKey) {
+                $foundKey = $key;
+                break;
+            }
+        }
+        
+        if ($foundKey) {
+            $cartKey = $foundKey;
+        }
+    }
+
+    if (isset($cart[$cartKey])) {
+        unset($cart[$cartKey]);
         $session->set('cart', $cart);
     }
 
@@ -269,6 +291,7 @@ public function remove($id, SessionInterface $session, EntityManagerInterface $e
         'success' => true,
         'count' => $count,
         'total' => $total,
+        'cartKey' => $cartKey // Pour le debug
     ]);
 }
 #[Route('/cart/clear', name: 'cart_clear')]
@@ -281,7 +304,7 @@ public function clear(SessionInterface $session): Response
 public function createTempOrder(SessionInterface $session, EntityManagerInterface $em): JsonResponse
 {
     $user = $this->getUser();
-    if (!$user) {
+    if (!$user instanceof User) {
         return $this->json(['error' => 'Vous devez être connecté'], 403);
     }
 

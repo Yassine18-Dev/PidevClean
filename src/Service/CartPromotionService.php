@@ -29,12 +29,15 @@ class CartPromotionService
             if ($item instanceof ShopProduct) {
                 $product = $item;
                 $quantity = 1; // Valeur par défaut si pas de quantité spécifiée
-            } else {
-                $product = $item['product'] ?? $item;
+            } elseif (is_array($item) && isset($item['product']) && $item['product'] instanceof ShopProduct) {
+                $product = $item['product'];
                 $quantity = $item['quantity'] ?? 1;
+            } else {
+                // Ignorer les items invalides
+                continue;
             }
             
-            $originalPrice = $product->getPrice();
+            $originalPrice = $product->getPriceAsFloat();
             $finalPrice = $product->getFinalPrice();
             $discountAmount = $originalPrice - $finalPrice;
             
@@ -87,7 +90,17 @@ class CartPromotionService
     public function hasPromotions(array $cartItems): bool
     {
         foreach ($cartItems as $item) {
-            if ($item['product']->hasActivePromotion()) {
+            // Gérer le cas où $item est directement un ShopProduct
+            if ($item instanceof ShopProduct) {
+                $product = $item;
+            } elseif (is_array($item) && isset($item['product']) && $item['product'] instanceof ShopProduct) {
+                $product = $item['product'];
+            } else {
+                // Ignorer les items invalides
+                continue;
+            }
+            
+            if ($product->hasActivePromotion()) {
                 return true;
             }
         }
@@ -107,7 +120,7 @@ class CartPromotionService
                 'name' => $promotion->getName(),
                 'code' => $promotion->getCode(),
                 'discount' => $promotionData['total_discount'],
-                'formatted_discount' => $promotion->getFormattedValue(),
+                'formatted_discount' => $promotionData['formatted_discount'],
                 'product_count' => count($promotionData['products']),
                 'products' => array_map(function($item) {
                     return [

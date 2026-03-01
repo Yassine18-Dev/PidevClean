@@ -14,7 +14,7 @@ class Player
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    private string $name;
 
     // ✅ Relation: N Players -> 1 Team
     #[ORM\ManyToOne(inversedBy: 'players')]
@@ -30,7 +30,7 @@ class Player
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }

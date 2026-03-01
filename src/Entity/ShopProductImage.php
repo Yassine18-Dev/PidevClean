@@ -14,15 +14,15 @@ class ShopProductImage
 
     #[ORM\ManyToOne(targetEntity: ShopProduct::class, inversedBy: "images")]
     #[ORM\JoinColumn(nullable: false)]
-    private ?ShopProduct $product = null;
+    private ShopProduct $product;
 
     #[ORM\Column(length: 255)]
-    private ?string $filename = null;
+    private string $filename;
 
     // ===== Getters & Setters =====
     public function getId(): ?int { return $this->id; }
-    public function getProduct(): ?ShopProduct { return $this->product; }
-    public function setProduct(?ShopProduct $product): self { $this->product = $product; return $this; }
-    public function getFilename(): ?string { return $this->filename; }
+    public function getProduct(): ShopProduct { return $this->product; }
+    public function setProduct(ShopProduct $product): self { $this->product = $product; return $this; }
+    public function getFilename(): string { return $this->filename; }
     public function setFilename(string $filename): self { $this->filename = $filename; return $this; }
 }

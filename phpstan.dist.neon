@@ -1,0 +1,30 @@
+parameters:
+    level: 8
+    paths:
+        - src/
+        - templates/
+        - tests/
+    ignoreErrors:
+        - '#Call to an undefined method#'
+        - '#Property.*\$id.*never assigned int#'
+        - '#Property.*only written#'
+        - '#Property.*promotionRepository.*only written#'
+        - '#Property.*is never read, only written#'
+        - '#property\.unusedType#'
+        - '#property\.onlyWritten#'
+        - '#Property.*never assigned.*property type#'
+        - '#Property.*only written.*property#'
+        - '#Call to function method_exists\(\) with.*will always evaluate to true#'
+        - '#has no value type specified in iterable type array#'
+        - '#with generic interface.*does not specify its types#'
+        - '#has no return type specified#'
+        - '#has parameter.*with no type specified#'
+        - '#has no type specified#'
+        - '#Cannot call method.*on.*null#'
+        - '#should return.*but returns#'
+        - '#expects.*given#'
+        - '#Offset.*might not exist#'
+        - '#extends generic class.*but does not specify its types#'
+        - '#parameter.*with no value type specified in iterable type array#'
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false

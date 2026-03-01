@@ -28,18 +28,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(message: 'Email is required.')]
     #[Assert\Email(message: 'Invalid email.')]
     #[ORM\Column(length: 180, unique: true)]
-    private ?string $email = null;
+    private string $email;
 
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
     #[ORM\Column]
-    private ?string $password = null;
+    private string $password;
 
     #[Assert\NotBlank(message: 'Username is required.')]
     #[Assert\Length(min: 3, max: 50, minMessage: 'Username must be at least 3 chars.')]
     #[ORM\Column(length: 50)]
-    private ?string $username = null;
+    private string $username;
 
     #[Assert\Choice(choices: ['PLAYER','CAPTAIN','FAN'], message: 'Invalid roleType.')]
     #[ORM\Column(length: 20)]
@@ -72,10 +72,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getId(): ?int { return $this->id; }
 
-    public function getEmail(): ?string { return $this->email; }
+    public function getEmail(): string { return $this->email; }
     public function setEmail(string $email): static { $this->email = $email; return $this; }
 
-    public function getUsername(): ?string { return $this->username; }
+    public function getUsername(): string { return $this->username; }
     public function setUsername(string $username): static { $this->username = $username; return $this; }
 
     public function getRoleType(): string { return $this->roleType; }
@@ -124,7 +124,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static { $this->password = $password; return $this; }
 
     public function eraseCredentials(): void {}
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ShopOrder::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ShopOrder::class, orphanRemoval: true, cascade: ['persist'])]
 private Collection $orders;
 
 public function __construct()

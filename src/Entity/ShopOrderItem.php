@@ -23,21 +23,11 @@ class ShopOrderItem
     #[ORM\Column]
     private int $quantity;
 
-    #[ORM\Column]
-    private float $price; // prix unitaire au moment de l’achat
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private string $price; // prix unitaire au moment de l'achat
+
     #[ORM\ManyToOne]
-private ?Size $size = null;
-
-public function getSize(): ?Size
-{
-    return $this->size;
-}
-
-public function setSize(?Size $size): self
-{
-    $this->size = $size;
-    return $this;
-}
+    private ?Size $size = null;
 
     // ===== Getters / Setters =====
 
@@ -52,6 +42,15 @@ public function setSize(?Size $size): self
     public function getQuantity(): int { return $this->quantity; }
     public function setQuantity(int $quantity): self { $this->quantity = $quantity; return $this; }
 
-    public function getPrice(): float { return $this->price; }
-    public function setPrice(float $price): self { $this->price = $price; return $this; }
+    public function getPrice(): string { return $this->price; }
+    public function setPrice(string $price): self { $this->price = $price; return $this; }
+
+    public function getPriceAsFloat(): float { return (float) $this->price; }
+    public function setPriceFromFloat(float $price): self { 
+        $this->price = number_format($price, 2, '.', ''); 
+        return $this; 
+    }
+
+    public function getSize(): ?Size { return $this->size; }
+    public function setSize(?Size $size): self { $this->size = $size; return $this; }
 }

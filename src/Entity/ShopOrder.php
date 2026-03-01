@@ -18,8 +18,8 @@ class ShopOrder
     #[ORM\JoinColumn(nullable: false)]
     private User $user;
 
-    #[ORM\Column]
-    private float $total = 0;
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private string $total = '0.00';
 
     #[ORM\Column(length: 20)]
     private string $status = 'PENDING'; // PENDING | PAID | CANCELED
@@ -52,8 +52,14 @@ public function setCreatedAt(\DateTimeImmutable $createdAt): self
     public function getUser(): User { return $this->user; }
     public function setUser(User $user): self { $this->user = $user; return $this; }
 
-    public function getTotal(): float { return $this->total; }
-    public function setTotal(float $total): self { $this->total = $total; return $this; }
+    public function getTotal(): string { return $this->total; }
+    public function setTotal(string $total): self { $this->total = $total; return $this; }
+
+    public function getTotalAsFloat(): float { return (float) $this->total; }
+    public function setTotalFromFloat(float $total): self { 
+        $this->total = number_format($total, 2, '.', ''); 
+        return $this; 
+    }
 
     public function getStatus(): string { return $this->status; }
     public function setStatus(string $status): self { $this->status = $status; return $this; }

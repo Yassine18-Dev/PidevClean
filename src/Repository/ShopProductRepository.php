@@ -109,15 +109,82 @@ class ShopProductRepository extends ServiceEntityRepository
                   ->getResult();
     }
 
-    public function findWithPromotions(): array
+    /**
+     * Trouve des produits avec leurs images (évite N+1)
+     */
+    public function findWithImages(int $limit = 50): array
     {
         return $this->createQueryBuilder('p')
-            ->leftJoin('p.promotions', 'promo')
-            ->addSelect('p', 'promo')
-            ->where('promo.isActive = :active')
+            ->leftJoin('p.images', 'i')
+            ->addSelect('p', 'i')
+            ->where('p.isActive = :active')
             ->setParameter('active', true)
-            ->orderBy('p.name', 'ASC')
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Trouve des produits par type avec images (évite N+1)
+     */
+    public function findByTypeWithImages(string $type, int $limit = 20, ?string $orderBy = 'price', ?string $order = 'ASC'): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->leftJoin('p.images', 'i')
+            ->addSelect('p', 'i')
+            ->where('p.type = :type')
+            ->andWhere('p.isActive = :active')
+            ->setParameter('type', $type)
+            ->setParameter('active', true);
+
+        // Ajout du tri dynamique
+        if ($orderBy && in_array($orderBy, ['price', 'createdAt', 'name'])) {
+            $qb->orderBy('p.' . $orderBy, $order === 'DESC' ? 'DESC' : 'ASC');
+        } else {
+            $qb->orderBy('p.price', 'ASC');
+        }
+
+        return $qb->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Recherche avec filtres et images (évite N+1)
+     */
+    public function searchWithFiltersAndImages(?string $query = null, ?string $type = null, ?string $game = null, int $limit = 50, ?string $orderBy = null, ?string $order = 'ASC'): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->leftJoin('p.images', 'i')
+            ->addSelect('p', 'i')
+            ->where('p.isActive = :active')
+            ->setParameter('active', true);
+
+        if ($query) {
+            $qb->andWhere('p.name LIKE :query')
+               ->setParameter('query', '%' . $query . '%');
+        }
+
+        if ($type) {
+            $qb->andWhere('p.type = :type')
+               ->setParameter('type', $type);
+        }
+
+        if ($game) {
+            $qb->andWhere('p.game = :game')
+               ->setParameter('game', $game);
+        }
+
+        // Ajout du tri dynamique
+        if ($orderBy && in_array($orderBy, ['price', 'createdAt', 'name'])) {
+            $qb->orderBy('p.' . $orderBy, $order === 'DESC' ? 'DESC' : 'ASC');
+        } else {
+            $qb->orderBy('p.createdAt', 'DESC');
+        }
+
+        return $qb->setMaxResults($limit)
+                  ->getQuery()
+                  ->getResult();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\ShopOrder;
 use App\Entity\ShopOrderItem;
+use App\Entity\User;
 use App\Repository\ShopProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,8 +25,13 @@ class CheckoutController extends AbstractController
             return $this->redirectToRoute('cart_show');
         }
 
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $order = new ShopOrder();
-        $order->setUser($this->getUser());
+        $order->setUser($user);
 
         $total = 0;
 

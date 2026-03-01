@@ -20,13 +20,13 @@ class Promotion
     #[ORM\Column(type: 'string', length: 100)]
     #[Assert\NotBlank(message: 'Le nom de la promotion est obligatoire')]
     #[Assert\Length(min: 3, max: 100)]
-    private ?string $name = null;
+    private string $name;
 
     #[ORM\Column(type: 'string', length: 20, unique: true)]
     #[Assert\NotBlank(message: 'Le code de promotion est obligatoire')]
     #[Assert\Length(min: 2, max: 20)]
     #[Assert\Regex(pattern: '/^[A-Z0-9_]+$/', message: 'Le code ne peut contenir que des lettres majuscules, des chiffres et des underscores')]
-    private ?string $code = null;
+    private string $code;
 
     #[ORM\Column(type: 'text', nullable: true)]
     #[Assert\Length(max: 500)]
@@ -34,24 +34,24 @@ class Promotion
 
     #[ORM\Column(type: 'string', length: 20)]
     #[Assert\NotBlank(message: 'Le type de promotion est obligatoire')]
-    private ?string $type = null;
+    private string $type;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    #[ORM\Column(type: 'decimal', precision: 5, scale: 2)]
     #[Assert\NotBlank(message: 'La valeur de la réduction est obligatoire')]
     #[Assert\Positive(message: 'La valeur doit être positive')]
     #[Assert\Range(min: 0.01, max: 100)]
-    private ?float $value = null;
+    private string $value;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
-    private ?float $minAmount = null;
+    private ?string $minAmount = null;
 
     #[ORM\Column(type: 'datetime')]
     #[Assert\NotBlank(message: 'La date de début est obligatoire')]
-    private ?\DateTimeInterface $startDate = null;
+    private \DateTimeInterface $startDate;
 
     #[ORM\Column(type: 'datetime')]
     #[Assert\NotBlank(message: 'La date de fin est obligatoire')]
-    private ?\DateTimeInterface $endDate = null;
+    private \DateTimeInterface $endDate;
 
     #[ORM\Column(type: 'boolean')]
     private bool $isActive = true;
@@ -140,40 +140,62 @@ class Promotion
         return $this;
     }
 
-    public function getValue(): float
+    public function getValue(): string
     {
         return $this->value;
     }
 
-    public function setValue(float $value): self
+    public function setValue(string $value): self
     {
         $this->value = $value;
         return $this;
     }
 
-    public function getMinAmount(): float
+    public function getValueAsFloat(): float
+    {
+        return (float) $this->value;
+    }
+
+    public function setValueFromFloat(float $value): self
+    {
+        $this->value = number_format($value, 2, '.', '');
+        return $this;
+    }
+
+    public function getMinAmount(): ?string
     {
         return $this->minAmount;
     }
 
-    public function setMinAmount(float $minAmount): self
+    public function setMinAmount(?string $minAmount): self
     {
         $this->minAmount = $minAmount;
         return $this;
     }
 
-    public function getStartDate(): \DateTime
+    public function getMinAmountAsFloat(): ?float
+    {
+        return $this->minAmount ? (float) $this->minAmount : null;
+    }
+
+    public function setMinAmountFromFloat(?float $minAmount): self
+    {
+        $this->minAmount = $minAmount ? number_format($minAmount, 2, '.', '') : null;
+        return $this;
+    }
+
+    public function getStartDate(): \DateTimeInterface
     {
         return $this->startDate;
     }
 
-    public function setStartDate(\DateTime $startDate): self
+    public function setStartDate(\DateTimeInterface $startDate): self
     {
         $this->startDate = $startDate;
         return $this;
     }
 
-    public function getEndDate(): \DateTime
+    public function getEndDate(): \DateTimeInterface
     {
         return $this->endDate;
     }
@@ -238,23 +260,23 @@ class Promotion
         return $this;
     }
 
-    public function getCreatedAt(): \DateTime
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTime $createdAt): self
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
         return $this;
     }
 
-    public function getUpdatedAt(): \DateTime
+    public function getUpdatedAt(): \DateTimeInterface
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTime $updatedAt): self
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
         return $this;
@@ -278,21 +300,26 @@ class Promotion
         return $this->products->contains($product);
     }
 
-    public function calculateDiscount(float $originalPrice): float
+    public function calculateDiscount(string $originalPrice): float
     {
+        $originalPriceFloat = (float) $originalPrice;
+        $valueFloat = (float) $this->value;
+        
         if ($this->type === 'percentage') {
-            return $originalPrice * ($this->value / 100);
+            return $originalPriceFloat * ($valueFloat / 100);
         } elseif ($this->type === 'fixed_amount') {
-            return $this->value;
+            return $valueFloat;
         }
         
         return 0.0;
     }
 
-    public function getFinalPrice(float $originalPrice): float
+    public function getFinalPrice(string $originalPrice): string
     {
         $discount = $this->calculateDiscount($originalPrice);
-        return max(0, $originalPrice - $discount);
+        $originalPriceFloat = (float) $originalPrice;
+        $finalPrice = max(0, $originalPriceFloat - $discount);
+        return number_format($finalPrice, 2, '.', '');
     }
 
     public function getFormattedValue(): string
@@ -300,7 +327,7 @@ class Promotion
         if ($this->type === 'percentage') {
             return '-' . $this->value . '%';
         } elseif ($this->type === 'fixed_amount') {
-            return '-' . number_format($this->value, 2, ',', ' ') . ' €';
+            return '-' . number_format((float) $this->value, 2, ',', ' ') . ' €';
         }
         
         return '';

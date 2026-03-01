@@ -20,27 +20,30 @@ class ShopController extends AbstractController
         // récupère le paramètre de jeu sélectionné (optionnel)
         $game = $request->query->get('game'); // null si aucun
 
-        // récupère tous les jeux pour le select
-        $games = $em->getRepository(Game::class)->findAll();
+        // récupère tous les jeux pour le select (limité pour performance)
+        $games = $em->getRepository(Game::class)->findBy([], ['name' => 'ASC'], 50);
 
-        // récupération des produits selon type + filtre jeu
-        $criteria = ['type' => $type];
+        // récupération des produits selon type + filtre jeu avec eager loading pour éviter N+1
+        $qb = $em->createQueryBuilder();
+        $qb->select('p', 'i')
+           ->from(ShopProduct::class, 'p')
+           ->leftJoin('p.images', 'i')
+           ->where('p.type = :type')
+           ->andWhere('p.isActive = :active')
+           ->setParameter('type', $type)
+           ->setParameter('active', true);
 
-// utilisateur NON admin → seulement produits actifs
-if (!$this->isGranted('ROLE_ADMIN')) {
-    $criteria['isActive'] = true;
-}
+        // filtre par jeu si choisi
+        if ($game) {
+            $qb->andWhere('p.game = :game')
+               ->setParameter('game', $game);
+        }
 
-// filtre par jeu si choisi
-if ($game) {
-    $criteria['game'] = $game;
-}
+        // tri par prix avec LIMIT
+        $qb->orderBy('p.price', $order === 'asc' ? 'ASC' : 'DESC')
+           ->setMaxResults(50);
 
-        $products = $em->getRepository(ShopProduct::class)
-            ->findBy(
-                $criteria,
-                ['price' => $order === 'desc' ? 'DESC' : 'ASC']
-            );
+        $products = $qb->getQuery()->getResult();
 
         return $this->render('shop/index.html.twig', [
             'type' => strtoupper($type),

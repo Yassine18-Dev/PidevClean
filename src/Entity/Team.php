@@ -17,10 +17,10 @@ class Team
 
     // ✅ Champ d'affichage pour les selects (Player -> Team)
     #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    private string $name;
 
     // ✅ Relation: 1 Team -> N Players
-    #[ORM\OneToMany(mappedBy: 'team', targetEntity: Player::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'team', targetEntity: Player::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $players;
 
     public function __construct()
@@ -33,7 +33,7 @@ class Team
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
