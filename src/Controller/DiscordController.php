@@ -54,6 +54,7 @@ class DiscordController extends AbstractController
         $avatar = $data['avatar'] ?? null;
         $avatarUrl = null;
         if ($discordId && $avatar) {
+            // store hash (discord_avatar) + keep url as fallback
             $avatarUrl = "https://cdn.discordapp.com/avatars/{$discordId}/{$avatar}.png";
         }
 
@@ -64,6 +65,9 @@ class DiscordController extends AbstractController
             }
             if ($avatarUrl) {
                 $player->setDiscordAvatarUrl($avatarUrl);
+            }
+            if ($avatar) {
+                $player->setDiscordAvatar((string) $avatar);
             }
             $player->setDiscordLinkedAt(new \DateTime());
             $em->flush();

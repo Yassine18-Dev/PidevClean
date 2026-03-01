@@ -12,6 +12,7 @@ class Invitation
     public const STATUS_PENDING = 'pending';
     public const STATUS_ACCEPTED = 'accepted';
     public const STATUS_DECLINED = 'declined';
+    public const STATUS_EXPIRED = 'expired';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

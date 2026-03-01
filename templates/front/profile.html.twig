@@ -128,14 +128,45 @@
 
     <div style="margin-top:14px;" class="item">
       <div class="row">
-        <div style="font-weight:1000;">🔔 Invitations</div>
+        <div style="font-weight:1000;">🔔 Mes invitations</div>
         {% if receivedInvitations|length > 0 %}<span class="badgeCount">{{ receivedInvitations|length }}</span>{% endif %}
       </div>
-      <div class="muted" style="font-size:13px; margin-top:6px;">Accéder à la liste complète et répondre.</div>
-      <div class="actions">
-        <a class="btn" href="{{ path('invitation_index') }}">Voir mes invitations</a>
-      </div>
+
+      {% if receivedInvitations|length == 0 %}
+        <div class="muted" style="font-size:13px; margin-top:8px;">Aucune invitation en attente.</div>
+      {% else %}
+        <div style="display:grid; gap:10px; margin-top:10px;">
+          {% for inv in receivedInvitations|slice(0,3) %}
+            {% set team = inv.team %}
+            <div style="padding:12px; border-radius:14px; border:1px solid rgba(49,46,129,.45); background:rgba(5,8,20,.35);">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                <div>
+                  <div style="font-weight:1000;">{{ team.name }} ({{ team.game|upper }}) t’invite</div>
+                  <div class="muted" style="font-size:12px; margin-top:4px;">
+                    ⭐ Power: {{ team.players|length * 900 + 1845 }} • 👥 {{ team.players|length }}/{{ team.maxPlayers }}
+                    • 🕒 Expire le {{ inv.expiresAt ? inv.expiresAt|date('d/m/Y') : '—' }}
+                  </div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                  <form method="post" action="{{ path('invitation_accept', {id: inv.id}) }}">
+                    <button class="btn btnPrimary" type="submit">✓ ACCEPTER</button>
+                  </form>
+                  <form method="post" action="{{ path('invitation_decline', {id: inv.id}) }}">
+                    <button class="btn btnDanger" type="submit">✗ REFUSER</button>
+                  </form>
+                  <a class="btn" href="{{ path('app_team_show', {id: team.id}) }}">👥 Voir équipe</a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="actions" style="margin-top:10px;">
+          <a class="btn" href="{{ path('invitation_index') }}">Voir toutes mes invitations →</a>
+        </div>
+      {% endif %}
     </div>
+
 
     <div style="margin-top:12px;" class="item">
       <div style="font-weight:1000;">Équipe actuelle</div>

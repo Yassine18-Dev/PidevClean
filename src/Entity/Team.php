@@ -40,6 +40,9 @@ class Team
     #[ORM\Column(name: 'logo_name', length: 255, nullable: true)]
     private ?string $logoName = null;
 
+    #[ORM\Column(name: 'banner_name', length: 255, nullable: true)]
+    private ?string $bannerName = null;
+
     #[ORM\Column(name: 'max_players', type: 'integer', options: ['default' => 5])]
     private int $maxPlayers = 5;
 
@@ -74,6 +77,9 @@ class Team
 
     public function getLogoName(): ?string { return $this->logoName; }
     public function setLogoName(?string $logoName): self { $this->logoName = $logoName; return $this; }
+
+    public function getBannerName(): ?string { return $this->bannerName; }
+    public function setBannerName(?string $bannerName): self { $this->bannerName = $bannerName; return $this; }
 
     public function getMaxPlayers(): int { return $this->maxPlayers; }
     public function setMaxPlayers(int $maxPlayers): self { $this->maxPlayers = $maxPlayers; return $this; }

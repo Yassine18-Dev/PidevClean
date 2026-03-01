@@ -74,4 +74,49 @@ class InvitationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+
+public function countSentLast24hForTeam(Team $team): int
+{
+    $since = (new \DateTimeImmutable('-24 hours'));
+    return (int) $this->createQueryBuilder('i')
+        ->select('COUNT(i.id)')
+        ->andWhere('i.team = :t')
+        ->andWhere('i.createdAt >= :since')
+        ->setParameter('t', $team)
+        ->setParameter('since', $since)
+        ->getQuery()
+        ->getSingleScalarResult();
+}
+
+/** @return Invitation[] */
+public function findOtherPendingForPlayer(Player $player, ?Invitation $exclude = null): array
+{
+    $qb = $this->createQueryBuilder('i')
+        ->andWhere('i.player = :p')
+        ->andWhere('i.status = :st')
+        ->setParameter('p', $player)
+        ->setParameter('st', Invitation::STATUS_PENDING);
+
+    if ($exclude) {
+        $qb->andWhere('i.id != :ex')->setParameter('ex', $exclude->getId());
+    }
+
+    return $qb->getQuery()->getResult();
+}
+
+public function findPendingForTeamAndPlayer(Team $team, Player $player): ?Invitation
+{
+    return $this->createQueryBuilder('i')
+        ->andWhere('i.team = :t')
+        ->andWhere('i.player = :p')
+        ->andWhere('i.status = :st')
+        ->setParameter('t', $team)
+        ->setParameter('p', $player)
+        ->setParameter('st', Invitation::STATUS_PENDING)
+        ->setMaxResults(1)
+        ->getQuery()
+        ->getOneOrNullResult();
+}
+
 }

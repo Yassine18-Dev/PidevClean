@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/team')]
@@ -54,10 +55,14 @@ class TeamController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $logoName = (string) $request->request->all('team')['logoName'] ?? (string) $request->request->get('logoName');
+            $teamData = (array) $request->request->all('team');
+            $logoName = (string) ($teamData['logoName'] ?? $request->request->get('logoName'));
             if ($logoName !== '') {
                 $team->setLogoName($logoName);
             }
+
+            $this->handleBannerUpload($request, $team);
+
             $entityManager->persist($team);
             $entityManager->flush();
 
@@ -85,10 +90,14 @@ class TeamController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $logoName = (string) $request->request->all('team')['logoName'] ?? (string) $request->request->get('logoName');
+            $teamData = (array) $request->request->all('team');
+            $logoName = (string) ($teamData['logoName'] ?? $request->request->get('logoName'));
             if ($logoName !== '') {
                 $team->setLogoName($logoName);
             }
+
+            $this->handleBannerUpload($request, $team);
+
             $entityManager->flush();
 
             return $this->redirectToRoute('app_team_index', [], Response::HTTP_SEE_OTHER);
@@ -110,4 +119,35 @@ class TeamController extends AbstractController
 
         return $this->redirectToRoute('app_team_index', [], Response::HTTP_SEE_OTHER);
     }
+
+
+private function handleBannerUpload(Request $request, Team $team): void
+{
+    /** @var UploadedFile|null $file */
+    $file = $request->files->get('team')['bannerFile'] ?? null;
+    if (!$file instanceof UploadedFile) {
+        return;
+    }
+
+    // validation: max 2MB
+    if ($file->getSize() !== null && $file->getSize() > 2 * 1024 * 1024) {
+        throw new \RuntimeException('Bannière trop lourde (max 2 Mo).');
+    }
+
+    $ext = strtolower($file->guessExtension() ?: $file->getClientOriginalExtension() ?: '');
+    if (!in_array($ext, ['jpg','jpeg','png','webp'], true)) {
+        throw new \RuntimeException('Format de bannière invalide (JPG, PNG, WEBP).');
+    }
+
+    $safe = bin2hex(random_bytes(8)).'.'.$ext;
+
+    $dest = $this->getParameter('kernel.project_dir').'/public/uploads/teams/banners';
+    if (!is_dir($dest)) {
+        @mkdir($dest, 0777, true);
+    }
+
+    $file->move($dest, $safe);
+    $team->setBannerName($safe);
+}
+
 }

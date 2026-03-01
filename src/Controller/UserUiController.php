@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\InvitationRepository;
+use App\Service\DiscordAvatarService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,7 +15,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class UserUiController extends AbstractController
 {
     #[Route('/profile', name: 'ui_profile', methods: ['GET'])]
-    public function profile(EntityManagerInterface $em, InvitationRepository $invitationRepository): Response
+    public function profile(EntityManagerInterface $em, InvitationRepository $invitationRepository, DiscordAvatarService $discordAvatarService): Response
     {
         /** @var User|null $user */
         $user = $this->getUser();
@@ -25,11 +26,13 @@ class UserUiController extends AbstractController
 
         $player = method_exists($user, 'getPlayer') ? $user->getPlayer() : null;
         $receivedInvitations = $player ? $invitationRepository->findReceivedPending($player) : [];
+        $discordAvatar = $discordAvatarService->getAvatarUrl($player);
 
         return $this->render('front/profile.html.twig', [
             'user' => $user,
             'player' => $player,
             'receivedInvitations' => $receivedInvitations,
+            'discordAvatar' => $discordAvatar,
         ]);
     }
 

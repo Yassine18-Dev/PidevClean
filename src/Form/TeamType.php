@@ -5,6 +5,8 @@ namespace App\Form;
 use App\Entity\Team;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -14,6 +16,12 @@ class TeamType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('bannerFile', FileType::class, [
+                'label' => 'Bannière (photo de couverture)',
+                'mapped' => false,
+                'required' => false,
+                'attr' => ['accept' => 'image/*'],
+            ])
             ->add('name', TextType::class, [
                 'label' => 'Nom',
             ])
@@ -23,6 +31,10 @@ class TeamType extends AbstractType
                     'League of Legends' => 'lol',
                     'Valorant' => 'valorant',
                 ],
+            ])
+            ->add('logoName', HiddenType::class, [
+                'mapped' => false,
+                'required' => false,
             ])
         ;
     }

@@ -12,14 +12,26 @@
 
   <style>
     :root{
+      --bg-dark:#0A0C10;
+      --bg-card:#1A1E26;
+      --bg-card-hover:#252B36;
+      --primary:#00A8FF;
+      --primary-glow:0 0 15px rgba(0, 168, 255, 0.5);
+      --secondary:#9147FF;
+      --success:#00FF88;
+      --warning:#FFB800;
+      --danger:#FF4D4D;
+      --text-primary:#F0F4FA;
+      --text-secondary:#8F9BB3;
+      --border:#2A313C;
+
+      /* legacy tokens (kept for existing templates) */
       --bg1:#050814; --bg2:#1b1f3b;
-      --card:rgba(20,24,60,.95);
-      --border:#312e81;
-      --text:#fff; --muted:#9ca3af;
-      --purple:#a855f7; --blue:#3b82f6;
-      --danger:#dc2626; --success:#16a34a;
+      --card:rgba(26,30,38,.92);
+      --text:var(--text-primary); --muted:var(--text-secondary);
+      --purple:var(--secondary); --blue:var(--primary);
     }
-    body{margin:0;font-family:'Segoe UI',sans-serif;background:radial-gradient(circle at top,var(--bg2),var(--bg1));color:var(--text);}
+    body{margin:0;font-family:'Segoe UI',sans-serif;background:radial-gradient(circle at top,#121824,var(--bg-dark));color:var(--text-primary);}
     nav{background:rgba(5,8,20,.75);border-bottom:1px solid rgba(49,46,129,.35);padding:14px 22px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;backdrop-filter:blur(10px);}
     .logo{font-weight:900;font-size:20px;color:var(--purple);}
     nav a{color:white;text-decoration:none;font-weight:700;margin-left:14px;font-size:14px;opacity:.92;}
