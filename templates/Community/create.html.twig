@@ -1,0 +1,415 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}Nouveau Post{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+<style>
+    /* Override the narrow base container */
+    .container {
+        max-width: 1000px !important;
+        margin-top: 24px !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 20px !important;
+    }
+
+    .create-card {
+        background: linear-gradient(145deg, rgba(20,24,60,0.98), rgba(10,12,40,0.99));
+        border: 1px solid rgba(168, 85, 247, 0.25);
+        border-radius: 18px;
+        padding: 28px 36px;
+        box-shadow: 0 0 50px rgba(168, 85, 247, 0.12), 0 25px 50px rgba(0,0,0,0.5);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Subtle glow in the top left */
+    .create-card::before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        left: -100px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .page-header {
+        margin-bottom: 20px;
+    }
+
+    .page-header h1 {
+        font-size: 22px;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 6px 0;
+        text-align: left;
+        letter-spacing: -0.5px;
+    }
+
+    .page-header p {
+        color: #6b7280;
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .field-group {
+        margin-bottom: 16px;
+    }
+
+    .field-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 10px;
+    }
+
+    .styled-textarea {
+        width: 100%;
+        background: rgba(5, 8, 30, 0.7) !important;
+        border: 1px solid rgba(99, 102, 241, 0.2) !important;
+        color: #f3f4f6 !important;
+        border-radius: 14px !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+        resize: vertical;
+        transition: border-color 0.25s, box-shadow 0.25s;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .styled-textarea:focus {
+        outline: none;
+        border-color: #a855f7 !important;
+        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15) !important;
+    }
+
+    .styled-textarea::placeholder {
+        color: #4b5563;
+    }
+
+    /* AI Toolbar below the textarea */
+    .ai-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+    }
+
+    .mic-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(168, 85, 247, 0.1);
+        border: 1.5px solid rgba(168, 85, 247, 0.5);
+        color: #a855f7;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        flex-shrink: 0;
+    }
+
+    .mic-btn:hover {
+        background: #a855f7;
+        color: white;
+        border-color: #a855f7;
+        box-shadow: 0 0 16px rgba(168, 85, 247, 0.4);
+        transform: scale(1.05);
+    }
+
+    .mic-btn.recording {
+        background: #ef4444;
+        border-color: #ef4444;
+        color: white;
+        animation: pulse-rec 1.2s infinite;
+    }
+
+    @keyframes pulse-rec {
+        0%   { box-shadow: 0 0 0 0   rgba(239, 68, 68, 0.6); }
+        70%  { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0   rgba(239, 68, 68, 0); }
+    }
+
+    .refine-btn {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        background: rgba(168, 85, 247, 0.07);
+        border: 1.5px solid rgba(168, 85, 247, 0.3);
+        color: #c4b5fd;
+        border-radius: 8px;
+        padding: 7px 13px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s;
+    }
+
+    .refine-btn:hover {
+        background: rgba(168, 85, 247, 0.2);
+        border-color: #a855f7;
+        color: #fff;
+    }
+
+    .refine-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .ai-hint {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #4b5563;
+        margin-left: auto;
+    }
+
+    /* File upload area */
+    .upload-area {
+        border: 2px dashed rgba(99, 102, 241, 0.25);
+        border-radius: 10px;
+        padding: 12px;
+        text-align: center;
+        transition: border-color 0.25s;
+        cursor: pointer;
+    }
+
+    .upload-area:hover {
+        border-color: rgba(168, 85, 247, 0.5);
+    }
+
+    .upload-area input[type="file"] {
+        width: 100%;
+        color: #9ca3af;
+        font-size: 14px;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        cursor: pointer;
+    }
+
+    .upload-hint {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #4b5563;
+    }
+
+    /* Divider */
+    .divider {
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        margin: 16px 0;
+    }
+
+    /* Bottom row */
+    .form-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-cancel {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .btn-cancel:hover {
+        color: #d1d5db;
+    }
+
+    .btn-publish {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #a855f7, #7c3aed);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 11px 26px;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        transition: all 0.25s;
+        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.35);
+        width: auto !important;
+    }
+
+    .btn-publish:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(124, 58, 237, 0.5);
+    }
+
+    /* AI status spinner */
+    .ai-loading {
+        display: none;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #a855f7;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="create-card">
+
+    <div class="page-header">
+        <h1>✍️ Nouveau post</h1>
+        <p>Partagez vos pensées, captures d'écran ou aventures avec la communauté.</p>
+    </div>
+
+    {{ form_start(form) }}
+
+        <div class="field-group">
+            <span class="field-label">Votre message</span>
+
+            {{ form_widget(form.content, {
+                'attr': {
+                    'class': 'styled-textarea',
+                    'rows': 7,
+                    'placeholder': 'Qu\'avez-vous envie de partager aujourd\'hui ?'
+                }
+            }) }}
+
+            <div class="ai-toolbar">
+                <!-- Microphone button -->
+                <div id="mic-btn" class="mic-btn" title="Cliquez et parlez">
+                    <i class="fa-solid fa-microphone"></i>
+                </div>
+
+                <!-- AI Refine button -->
+                <button type="button" id="btn-refine" class="refine-btn">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    Améliorer par IA
+                </button>
+
+                <div id="ai-loading" class="ai-loading">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> L'IA améliore votre texte…
+                </div>
+
+                <div class="ai-hint">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Dictez, puis laissez l'IA peaufiner
+                </div>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <span class="field-label"><i class="fa-regular fa-image me-1"></i> Images (optionnel)</span>
+            <div class="upload-area">
+                {{ form_widget(form.images) }}
+                <p class="upload-hint">PNG, JPG, GIF — max 3 fichiers</p>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="form-footer">
+            <a href="{{ path('community_index') }}" class="btn-cancel">
+                <i class="fa-solid fa-arrow-left"></i> Annuler
+            </a>
+            <button type="submit" class="btn-publish">
+                Publier <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+
+    {{ form_end(form) }}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const micBtn  = document.getElementById('mic-btn');
+    const textarea = document.querySelector('textarea');
+    const btnRefine = document.getElementById('btn-refine');
+    const aiLoading = document.getElementById('ai-loading');
+
+    /* ── 1. SPEECH RECOGNITION ── */
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+        micBtn.title = 'Non supporté sur ce navigateur';
+        micBtn.style.opacity = '0.35';
+        micBtn.style.cursor  = 'not-allowed';
+    } else {
+        const recognition = new SR();
+        recognition.lang = 'fr-FR';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        let active = false;
+
+        micBtn.addEventListener('click', () => {
+            if (!active) {
+                recognition.start();
+                micBtn.classList.add('recording');
+                micBtn.title = 'Cliquez pour arrêter';
+                active = true;
+            } else {
+                recognition.stop();
+            }
+        });
+
+        recognition.onresult = e => {
+            const t = e.results[0][0].transcript;
+            textarea.value = textarea.value ? textarea.value + ' ' + t : t;
+        };
+
+        recognition.onend = () => {
+            micBtn.classList.remove('recording');
+            micBtn.title = 'Cliquez et parlez';
+            active = false;
+        };
+
+        recognition.onerror = () => {
+            micBtn.classList.remove('recording');
+            active = false;
+        };
+    }
+
+    /* ── 2. AI REFINEMENT ── */
+    btnRefine.addEventListener('click', async () => {
+        const text = textarea.value.trim();
+        if (!text) { alert("Écrivez ou dictez quelque chose d'abord !"); return; }
+
+        btnRefine.disabled = true;
+        aiLoading.style.display = 'flex';
+
+        try {
+            const res = await fetch('{{ path('api_ai_refine_text') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            const data = await res.json();
+            if (data.refined) textarea.value = data.refined;
+            else alert("L'IA n'a pas pu améliorer le texte.");
+        } catch (e) {
+            alert('Erreur de connexion à l\'IA.');
+        } finally {
+            btnRefine.disabled = false;
+            aiLoading.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

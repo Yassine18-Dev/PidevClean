@@ -1,0 +1,31 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}Register{% endblock %}
+
+{% block body %}
+<h1>Create Account</h1>
+<p class="subtitle">Join the ArenaMind Esports platform</p>
+
+<form method="post">
+  <label>Username</label>
+  <input name="username" placeholder="PlayerOne">
+
+  <label>Email</label>
+  <input type="email" name="email" placeholder="player@email.com">
+
+  <label>Password</label>
+  <input type="password" name="password" placeholder="Min 6 characters">
+
+  <label>Role</label>
+  <select name="roleType">
+    <option value="PLAYER">PLAYER</option>
+    <option value="CAPTAIN">CAPTAIN</option>
+    <option value="FAN">FAN</option>
+  </select>
+
+  <button>Create account</button>
+</form>
+
+<div class="link">
+  Already have an account? <a href="{{ path('ui_login') }}">Login</a>
+</div>
+{% endblock %}

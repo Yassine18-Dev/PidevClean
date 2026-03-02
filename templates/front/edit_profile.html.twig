@@ -1,0 +1,31 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block body %}
+<h1>Edit Profile</h1>
+<p class="subtitle">Validation côté serveur (Assert).</p>
+
+<form method="post">
+  <label>Username</label>
+  <input name="username" value="{{ user.username }}">
+
+  <label>Email</label>
+  <input type="email" name="email" value="{{ user.email }}">
+
+  <label>Favorite Game</label>
+  <select name="favoriteGame">
+    <option {% if user.favoriteGame == 'FIFA' %}selected{% endif %}>FIFA</option>
+    <option {% if user.favoriteGame == 'LoL' %}selected{% endif %}>LoL</option>
+    <option {% if user.favoriteGame == 'Valorant' %}selected{% endif %}>Valorant</option>
+  </select>
+
+  <label>Bio</label>
+  <input name="bio" value="{{ user.bio }}">
+
+  <button>Save Changes</button>
+</form>
+
+<div class="link">
+  <a href="{{ path('ui_profile') }}">Back to profile</a>
+</div>
+{% endblock %}

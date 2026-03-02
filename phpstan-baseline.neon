@@ -1,0 +1,43 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Attribute class Sensio\\Bundle\\FrameworkExtraBundle\\Configuration\\IsGranted does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: src/Controller/AdminCommunityController.php
+
+		-
+			message: '#^Parameter \#1 \$author of method App\\Entity\\Comment\:\:setAuthor\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CommentController.php
+
+		-
+			message: '#^Attribute class Sensio\\Bundle\\FrameworkExtraBundle\\Configuration\\IsGranted does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: src/Controller/PostController.php
+
+		-
+			message: '#^Parameter \#1 \$author of method App\\Entity\\Post\:\:setAuthor\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/PostController.php
+
+		-
+			message: '#^Property App\\Entity\\User\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: src/Service/AIPostManager.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: src/Service/HuggingFaceService.php

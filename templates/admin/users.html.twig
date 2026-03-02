@@ -1,0 +1,64 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Admin • Users{% endblock %}
+
+{% set nextDir = (dir == 'ASC') ? 'DESC' : 'ASC' %}
+
+{% block body %}
+<h1>Users Management</h1>
+<p class="subtitle">Recherche + Tri + Activate/Suspend/Ban + CRUD</p>
+
+<div class="row">
+  <form method="get" action="{{ path('ui_admin_users') }}" class="row">
+    <input name="q" value="{{ q }}" placeholder="Search username/email/status/role...">
+    <select name="sort">
+      <option value="id" {{ sort=='id'?'selected':'' }}>id</option>
+      <option value="username" {{ sort=='username'?'selected':'' }}>username</option>
+      <option value="email" {{ sort=='email'?'selected':'' }}>email</option>
+      <option value="roleType" {{ sort=='roleType'?'selected':'' }}>roleType</option>
+      <option value="status" {{ sort=='status'?'selected':'' }}>status</option>
+      <option value="createdAt" {{ sort=='createdAt'?'selected':'' }}>createdAt</option>
+    </select>
+    <select name="dir">
+      <option value="ASC" {{ dir=='ASC'?'selected':'' }}>ASC</option>
+      <option value="DESC" {{ dir=='DESC'?'selected':'' }}>DESC</option>
+    </select>
+    <button style="width:auto;padding:10px 14px;">Go</button>
+    <a class="btn2" href="{{ path('ui_admin_users') }}">Reset</a>
+  </form>
+
+  <a class="btn" href="{{ path('ui_admin_user_new') }}">+ New User</a>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th><a class="badge" href="{{ path('ui_admin_users', {q:q, sort:'id', dir: nextDir}) }}">ID</a></th>
+      <th><a class="badge" href="{{ path('ui_admin_users', {q:q, sort:'username', dir: nextDir}) }}">Username</a></th>
+      <th><a class="badge" href="{{ path('ui_admin_users', {q:q, sort:'email', dir: nextDir}) }}">Email</a></th>
+      <th><a class="badge" href="{{ path('ui_admin_users', {q:q, sort:'roleType', dir: nextDir}) }}">Role</a></th>
+      <th><a class="badge" href="{{ path('ui_admin_users', {q:q, sort:'status', dir: nextDir}) }}">Status</a></th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+  {% for u in users %}
+    <tr>
+      <td>{{ u.id }}</td>
+      <td><strong>{{ u.username }}</strong></td>
+      <td>{{ u.email }}</td>
+      <td><span class="badge">{{ u.roleType }}</span></td>
+      <td><span class="badge">{{ u.status }}</span></td>
+      <td>
+        <a class="badge" href="{{ path('ui_admin_user_show', {id:u.id}) }}">View</a>
+        <a class="badge" href="{{ path('ui_admin_user_edit', {id:u.id}) }}">Edit</a>
+
+        <a class="badge" href="{{ path('ui_admin_users', {action:'activate', id:u.id, q:q, sort:sort, dir:dir}) }}">Activate</a>
+        <a class="badge" href="{{ path('ui_admin_users', {action:'suspend', id:u.id, q:q, sort:sort, dir:dir}) }}">Suspend</a>
+        <a class="badge" href="{{ path('ui_admin_users', {action:'ban', id:u.id, q:q, sort:sort, dir:dir}) }}">Ban</a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

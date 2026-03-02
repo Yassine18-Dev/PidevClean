@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}ArenaMind • Admin{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root{
+      --bg1:#050814; --bg2:#1b1f3b;
+      --card:rgba(20,24,60,.95);
+      --border:#312e81;
+      --text:#fff; --muted:#9ca3af;
+      --purple:#a855f7; --blue:#3b82f6;
+      --danger:#dc2626; --success:#16a34a;
+    }
+    body{margin:0;font-family:'Segoe UI',sans-serif;background:radial-gradient(circle at top,var(--bg2),var(--bg1));color:var(--text);}
+    nav{background:rgba(5,8,20,.75);border-bottom:1px solid rgba(49,46,129,.35);padding:14px 22px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;backdrop-filter:blur(10px);}
+    .logo{font-weight:900;font-size:20px;color:var(--purple);}
+    nav a{color:white;text-decoration:none;font-weight:700;margin-left:14px;font-size:14px;opacity:.92;}
+    nav a:hover{opacity:1;color:#dbeafe;}
+    .container{max-width:980px;margin:56px auto;background:var(--card);padding:34px;border-radius:18px;box-shadow:0 0 40px rgba(168,85,247,.25);border:1px solid rgba(49,46,129,.55);}
+    h1{text-align:left;margin:0 0 8px;color:var(--purple);}
+    .subtitle{color:var(--muted);margin:0 0 24px;font-size:14px;}
+    .badge{display:inline-block;padding:6px 12px;border-radius:999px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);font-size:12px;margin-right:6px;}
+    .flash-success{background:var(--success);padding:10px;border-radius:10px;margin-bottom:12px;text-align:center;font-weight:700;}
+    .flash-error{background:var(--danger);padding:10px;border-radius:10px;margin-bottom:12px;text-align:center;font-weight:700;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:10px;border-bottom:1px solid rgba(49,46,129,.35);text-align:left;}
+    input,select{padding:10px;background:#0b0f2e;border:1px solid var(--border);border-radius:12px;color:white;outline:none;}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 18px;}
+    .btn{display:inline-block;padding:10px 14px;border-radius:12px;background:linear-gradient(90deg,var(--purple),var(--blue));color:white;text-decoration:none;font-weight:900;}
+    .btn:hover{opacity:.92;}
+    .btn2{display:inline-block;padding:10px 14px;border-radius:12px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:white;text-decoration:none;font-weight:900;}
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">🛡️ ArenaMind Admin</div>
+  <div>
+    <a href="{{ path('ui_admin') }}">Dashboard</a>
+    <a href="{{ path('ui_admin_users') }}">Users</a>
+    <a href="{{ path('ui_profile') }}">Front</a>
+    <a href="{{ path('ui_logout') }}">Logout</a>
+  </div>
+</nav>
+
+<div class="container">
+  {% for msg in app.flashes('success') %}<div class="flash-success">{{ msg }}</div>{% endfor %}
+  {% for msg in app.flashes('error') %}<div class="flash-error">{{ msg }}</div>{% endfor %}
+  {% block body %}{% endblock %}
+</div>
+
+</body>
+</html>

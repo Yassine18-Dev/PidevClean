@@ -1,0 +1,250 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}Communauté{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+    /* Permettre au container de s'élargir un peu pour le feed social */
+    .container {
+        max-width: 650px !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    .community-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .btn-create {
+        background: var(--blue);
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-create:hover { opacity: 0.9; }
+
+    /* Cartes bien séparées */
+    .post-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .post-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .author-avatar {
+        width: 45px;
+        height: 45px;
+        background: var(--purple);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .author-details h4 {
+        margin: 0 0 4px 0;
+        color: white;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .author-details .time {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+    }
+
+    .badge-role {
+        font-size: 11px;
+        background: rgba(59, 130, 246, 0.2);
+        color: var(--blue);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .badge-subject {
+        font-size: 12px;
+        background: var(--purple);
+        color: white;
+        padding: 3px 10px;
+        border-radius: 15px;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+
+    .delete-btn {
+        color: var(--muted);
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    .delete-btn:hover { color: var(--danger); }
+
+    .ai-summary {
+        background: rgba(168, 85, 247, 0.1);
+        border-left: 4px solid var(--purple);
+        padding: 12px 15px;
+        border-radius: 0 6px 6px 0;
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: #e5e7eb;
+    }
+    .ai-summary i { color: var(--purple); margin-right: 8px; }
+
+    .post-content {
+        color: #f3f4f6;
+        line-height: 1.6;
+        margin-bottom: 15px;
+        white-space: pre-wrap;
+    }
+
+    .post-images {
+        margin-bottom: 15px;
+        background: #000;
+        border-radius: 8px;
+        overflow: hidden;
+        text-align: center;
+    }
+    .post-images img {
+        max-width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+    }
+
+    .post-footer {
+        display: flex;
+        gap: 20px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        padding-top: 15px;
+    }
+
+    .action-button {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: auto !important;
+        padding: 8px 12px !important;
+        border-radius: 8px;
+    }
+    .action-button:hover { color: white; }
+    
+    .empty-state {
+        text-align: center;
+        padding: 50px;
+        background: var(--card);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="community-header">
+    <h1 style="color: white; margin: 0; text-align: left;">Fil d'actualité</h1>
+    <a href="{{ path('community_create') }}" class="btn-create">
+        <i class="fa-solid fa-pen"></i> Nouveau post
+    </a>
+</div>
+
+{% for post in posts %}
+    <div class="post-card">
+        
+        <div class="post-header">
+            <div class="author-info">
+                <div class="author-avatar">
+                    {{ post.author.username|first|upper }}
+                </div>
+                <div class="author-details">
+                    <h4>
+                        {{ post.author.username }}
+                        <span class="badge-role">{{ post.author.roles[0]|replace({'ROLE_':'','_':' '}) }}</span>
+                    </h4>
+                    <p class="time"><i class="fa-regular fa-clock"></i> {{ post.createdAt|date('d/m/Y H:i') }}</p>
+                </div>
+            </div>
+
+            {% if is_granted('ROLE_ADMIN') or app.user == post.author %}
+                <a href="{{ path('community_delete', {id: post.id}) }}" 
+                   class="delete-btn" 
+                   onclick="return confirm('Confirmez-vous la suppression ?')"
+                   title="Supprimer">
+                    <i class="fa-solid fa-trash"></i>
+                </a>
+            {% endif %}
+        </div>
+
+        {% if post.subject and post.subject != 'Général' %}
+            <span class="badge-subject">
+                <i class="fa-solid fa-hashtag"></i> {{ post.subject }}
+            </span>
+        {% endif %}
+
+        {% if post.summary %}
+            <div class="ai-summary">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <strong>Résumé IA :</strong> {{ post.summary }}
+            </div>
+        {% endif %}
+
+        <div class="post-content">
+            {{ post.content|nl2br }}
+        </div>
+
+        {% if post.images|length > 0 %}
+            <div class="post-images">
+                {% for image in post.images %}
+                    <img src="{{ asset('uploads/images/' ~ image.filename) }}" alt="Image du post">
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="post-footer">
+            <button class="action-button"><i class="fa-regular fa-heart"></i> J'aime</button>
+            <button class="action-button"><i class="fa-regular fa-comment"></i> Commenter</button>
+            <button class="action-button"><i class="fa-solid fa-share"></i> Partager</button>
+        </div>
+    </div>
+{% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-comment-dots" style="font-size: 40px; color: var(--muted); margin-bottom: 15px;"></i>
+        <h3 style="color: white; margin-bottom: 5px;">Aucun post</h3>
+        <p style="color: var(--muted);">Soyez le premier à partager quelque chose.</p>
+    </div>
+{% endfor %}
+
+{% endblock %}

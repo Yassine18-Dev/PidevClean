@@ -1,0 +1,44 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+<h1>{{ title }}</h1>
+<p class="subtitle">Validation côté serveur (pas de JS)</p>
+
+{{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+  <div class="row" style="align-items:flex-start;">
+    <div style="flex:1;min-width:260px;">
+      <label>Username</label>
+      {{ form_widget(form.username) }}
+      {{ form_errors(form.username) }}
+
+      <label>Email</label>
+      {{ form_widget(form.email) }}
+      {{ form_errors(form.email) }}
+
+      <label>Role</label>
+      {{ form_widget(form.roleType) }}
+
+      <label>Status</label>
+      {{ form_widget(form.status) }}
+    </div>
+
+    <div style="flex:1;min-width:260px;">
+      <label>New Password</label>
+      {{ form_widget(form.newPassword) }}
+      {{ form_errors(form.newPassword) }}
+
+      <p class="subtitle" style="text-align:left;">
+        * Create: password obligatoire<br>
+        * Edit: laisse vide pour ne pas changer
+      </p>
+    </div>
+  </div>
+
+  <button>Save</button>
+{{ form_end(form) }}
+
+<div class="row">
+  <a class="btn2" href="{{ path('ui_admin_users') }}">Back</a>
+</div>
+{% endblock %}

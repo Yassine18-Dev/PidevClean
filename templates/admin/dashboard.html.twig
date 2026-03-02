@@ -1,0 +1,16 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block body %}
+<h1>Dashboard</h1>
+<p class="subtitle">Statistiques des utilisateurs (DB)</p>
+
+<div class="row">
+  <span class="badge">Total: {{ stats.users }}</span>
+  <span class="badge">Active: {{ stats.active }}</span>
+  <span class="badge">Suspended: {{ stats.suspended }}</span>
+  <span class="badge">Banned: {{ stats.banned }}</span>
+</div>
+
+<a class="btn" href="{{ path('ui_admin_users') }}">Manage Users</a>
+{% endblock %}

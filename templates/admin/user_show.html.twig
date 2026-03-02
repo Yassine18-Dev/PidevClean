@@ -1,0 +1,28 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Admin • User{% endblock %}
+
+{% block body %}
+<h1>User Details</h1>
+<p class="subtitle">Admin view</p>
+
+<p><strong>ID:</strong> {{ u.id }}</p>
+<p><strong>Username:</strong> {{ u.username }}</p>
+<p><strong>Email:</strong> {{ u.email }}</p>
+<p><strong>Role:</strong> <span class="badge">{{ u.roleType }}</span></p>
+<p><strong>Status:</strong> <span class="badge">{{ u.status }}</span></p>
+
+<div class="row">
+  <a class="btn2" href="{{ path('ui_admin_user_edit', {id:u.id}) }}">Edit</a>
+
+  <a class="badge" href="{{ path('ui_admin_users', {action:'activate', id:u.id}) }}">✅ Activate</a>
+  <a class="badge" href="{{ path('ui_admin_users', {action:'suspend', id:u.id}) }}">⏸ Suspend</a>
+  <a class="badge" href="{{ path('ui_admin_users', {action:'ban', id:u.id}) }}">⛔ Ban</a>
+
+  <form method="post" action="{{ path('ui_admin_user_delete', {id:u.id}) }}" onsubmit="return confirm('Delete user?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('del_user_' ~ u.id) }}">
+    <button style="width:auto;padding:10px 14px;background:#dc2626;">Delete</button>
+  </form>
+</div>
+
+<a class="btn2" href="{{ path('ui_admin_users') }}">Back</a>
+{% endblock %}

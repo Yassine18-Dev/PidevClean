@@ -1,0 +1,28 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}Login{% endblock %}
+
+{% block body %}
+<h1>Login</h1>
+<p class="subtitle">Access your ArenaMind account</p>
+
+{% if error %}
+  <div class="flash-error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+{% endif %}
+
+<form method="post">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+  <label>Email</label>
+  <input type="email" name="_username" value="{{ last_username }}" placeholder="player@email.com">
+
+  <label>Password</label>
+  <input type="password" name="_password" placeholder="••••••••">
+
+  <button>Login</button>
+</form>
+
+<div class="link">
+  <a href="{{ path('ui_forgot_password') }}">Forgot password?</a><br>
+  New here? <a href="{{ path('ui_register') }}">Create account</a>
+</div>
+{% endblock %}
