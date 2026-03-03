@@ -1,0 +1,62 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}Aucune équipe - ArenaMind{% endblock %}
+
+{% block body %}
+<div class="profile-wrapper">
+    <div class="profile-container" style="display: block; text-align: center; padding: 100px 20px;">
+        <div class="profile-card" style="max-width: 600px; margin: 0 auto;">
+            <i class="fas fa-shield-halved" style="font-size: 4rem; color: var(--am-primary); margin-bottom: 2rem; display: block;"></i>
+            <h1 class="glow-text">Vous n'avez pas encore d'équipe</h1>
+            <p style="opacity: 0.7; margin: 1.5rem 0;">En tant que Capitaine, vous devez posséder une équipe pour gérer votre effectif et recruter des joueurs.</p>
+            
+            <div style="margin-top: 2rem;">
+                <a href="{{ path('team_index') }}" class="btn-primary" style="text-decoration: none; display: inline-block;">
+                    <i class="fas fa-plus"></i> Créer une équipe
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --am-primary: #9147ff;
+        --am-bg: #050510;
+        --am-card-bg: rgba(255, 255, 255, 0.03);
+    }
+    
+    .profile-wrapper {
+        background: var(--am-bg);
+        min-height: 100vh;
+        color: white;
+    }
+
+    .profile-card {
+        background: var(--am-card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 40px;
+        backdrop-filter: blur(10px);
+    }
+
+    .glow-text {
+        text-shadow: 0 0 15px rgba(145, 71, 255, 0.6);
+        font-weight: 800;
+    }
+
+    .btn-primary {
+        background: var(--am-primary);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 12px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .btn-primary:hover {
+        box-shadow: 0 0 20px rgba(145, 71, 255, 0.4);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}

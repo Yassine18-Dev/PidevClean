@@ -3,79 +3,19 @@
 namespace App\Controller;
 
 use App\Entity\Team;
-use App\Form\TeamType;
-use App\Repository\TeamRepository;
+use App\Repository\InvitationRepository;
+use App\Repository\PlayerRepository;
+use App\Service\InvitationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\Invitation;
 
-#[Route('/team')]
 class TeamController extends AbstractController
 {
-    #[Route('/', name: 'app_team_index', methods: ['GET'])]
-    public function index(Request $request, TeamRepository $teamRepository): Response
-    {
-        $q = trim((string) $request->query->get('q', ''));
-        $sort = (string) $request->query->get('sort', 'id'); // id|name
-        $dir = strtolower((string) $request->query->get('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
-
-        $qb = $teamRepository->createQueryBuilder('t');
-
-        if ($q !== '') {
-            $qb->andWhere('LOWER(t.name) LIKE :q')
-               ->setParameter('q', '%'.mb_strtolower($q).'%');
-        }
-
-        $sortMap = [
-            'id' => 't.id',
-            'name' => 't.name',
-        ];
-        $orderBy = $sortMap[$sort] ?? 't.id';
-
-        $qb->orderBy($orderBy, $dir);
-
-        $teams = $qb->getQuery()->getResult();
-
-        return $this->render('team/index.html.twig', [
-            'teams' => $teams,
-            'q' => $q,
-            'sort' => $sort,
-            'dir' => $dir,
-        ]);
-    }
-
-    #[Route('/new', name: 'app_team_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $team = new Team();
-        $form = $this->createForm(TeamType::class, $team);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $teamData = (array) $request->request->all('team');
-            $logoName = (string) ($teamData['logoName'] ?? $request->request->get('logoName'));
-            if ($logoName !== '') {
-                $team->setLogoName($logoName);
-            }
-
-            $this->handleBannerUpload($request, $team);
-
-            $entityManager->persist($team);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_team_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('team/new.html.twig', [
-            'team' => $team,
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/{id}', name: 'app_team_show', methods: ['GET'])]
+    #[Route('/team/{id}', name: 'team_show', methods: ['GET'])]
     public function show(Team $team): Response
     {
         return $this->render('team/show.html.twig', [
@@ -83,71 +23,138 @@ class TeamController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_team_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Team $team, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(TeamType::class, $team);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $teamData = (array) $request->request->all('team');
-            $logoName = (string) ($teamData['logoName'] ?? $request->request->get('logoName'));
-            if ($logoName !== '') {
-                $team->setLogoName($logoName);
-            }
-
-            $this->handleBannerUpload($request, $team);
-
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_team_index', [], Response::HTTP_SEE_OTHER);
+    /**
+     * ✅ SCÉNARIO A & B (Captain view)
+     */
+    #[Route('/my-team', name: 'my_team', methods: ['GET'])]
+    public function myTeam(
+        InvitationRepository $invitationRepo,
+        PlayerRepository $playerRepo,
+        Request $request
+    ): Response {
+        /** @var \App\Entity\User|null $user */
+        $user = $this->getUser();
+        if (!$user || $user->getRoleType() !== 'CAPTAIN') {
+            throw $this->createAccessDeniedException('Réservé aux Capitaines.');
         }
 
-        return $this->render('team/edit.html.twig', [
+        $player = $user->getPlayer();
+        $team = $player ? $player->getTeam() : null;
+
+        // Si le captain n'a pas encore de team (cas rare mais possible selon fixtures)
+        if (!$team) {
+            return $this->render('team/no_team.html.twig');
+        }
+
+        $q = $request->query->get('q', '');
+        $freePlayers = $playerRepo->findAvailableForTeam($team, $q, 10);
+        $joinRequests = $invitationRepo->findPendingCandidaturesForTeam($team);
+        $sentInvitations = $invitationRepo->findPendingForTeam($team); // Captain -> Player
+
+        return $this->render('team/my_team.html.twig', [
             'team' => $team,
-            'form' => $form,
+            'freePlayers' => $freePlayers,
+            'joinRequests' => $joinRequests,
+            'sentInvitations' => $sentInvitations,
+            'q' => $q
         ]);
     }
 
-    #[Route('/{id}', name: 'app_team_delete', methods: ['POST'])]
-    public function delete(Request $request, Team $team, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$team->getId(), (string) $request->request->get('_token'))) {
-            $entityManager->remove($team);
-            $entityManager->flush();
+    /**
+     * ✅ SCÉNARIO A : Action Inviter
+     */
+    #[Route('/team/{id}/invite/{playerId}', name: 'team_send_invite', methods: ['POST'])]
+    public function sendInvite(
+        Team $team,
+        int $playerId,
+        PlayerRepository $playerRepo,
+        InvitationService $invitationService
+    ): Response {
+        /** @var \App\Entity\User|null $user */
+        $user = $this->getUser();
+        if (!$user || !$team->getOwner() || $user->getId() !== $team->getOwner()->getId()) {
+            throw $this->createAccessDeniedException();
         }
 
-        return $this->redirectToRoute('app_team_index', [], Response::HTTP_SEE_OTHER);
+        $targetPlayer = $playerRepo->find($playerId);
+        if (!$targetPlayer) {
+            $this->addFlash('error', 'Joueur introuvable.');
+            return $this->redirectToRoute('my_team');
+        }
+
+        try {
+            $invitationService->captainInvitesPlayer($team, $targetPlayer, $user->getPlayer());
+            $this->addFlash('success', 'Invitation envoyée à ' . $targetPlayer->getNickname());
+        } catch (\Throwable $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('my_team');
     }
 
+    /**
+     * ✅ SCÉNARIO B : Action Postuler (par un Player)
+     */
+    #[Route('/team/{id}/apply', name: 'team_apply', methods: ['POST'])]
+    public function apply(Team $team, InvitationService $invitationService): Response
+    {
+        /** @var \App\Entity\User|null $user */
+        $user = $this->getUser();
+        $player = $user ? $user->getPlayer() : null;
 
-private function handleBannerUpload(Request $request, Team $team): void
-{
-    /** @var UploadedFile|null $file */
-    $file = $request->files->get('team')['bannerFile'] ?? null;
-    if (!$file instanceof UploadedFile) {
-        return;
+        if (!$player) {
+            throw $this->createAccessDeniedException();
+        }
+
+        try {
+            $invitationService->playerAppliesToTeam($player, $team);
+            $this->addFlash('success', 'Votre demande a été envoyée au capitaine.');
+        } catch (\Throwable $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('team_show', ['id' => $team->getId()]);
     }
 
-    // validation: max 2MB
-    if ($file->getSize() !== null && $file->getSize() > 2 * 1024 * 1024) {
-        throw new \RuntimeException('Bannière trop lourde (max 2 Mo).');
+    /**
+     * ✅ Action : Retirer un joueur de la team
+     * Accessible uniquement par le Capitaine (Owner) de la team.
+     */
+    #[Route('/team/remove/{playerId}', name: 'team_remove_player', methods: ['POST'])]
+    public function removePlayer(
+        int $playerId,
+        PlayerRepository $playerRepo,
+        EntityManagerInterface $em
+    ): Response {
+        /** @var \App\Entity\User|null $user */
+        $user = $this->getUser();
+        if (!$user || $user->getRoleType() !== 'CAPTAIN') {
+            throw $this->createAccessDeniedException('Réservé aux Capitaines.');
+        }
+
+        $targetPlayer = $playerRepo->find($playerId);
+        if (!$targetPlayer) {
+            $this->addFlash('error', 'Joueur introuvable.');
+            return $this->redirectToRoute('my_team');
+        }
+
+        $team = $targetPlayer->getTeam();
+        if (!$team || !$team->getOwner() || $user->getId() !== $team->getOwner()->getId()) {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas retirer ce joueur car il n\'appartient pas à votre équipe.');
+        }
+
+        // Sécurité : Le capitaine ne peut pas se retirer lui-même de sa propre team ici
+        if ($targetPlayer->getUser() && $targetPlayer->getUser()->getId() === $user->getId()) {
+            $this->addFlash('error', 'Vous ne pouvez pas vous retirer vous-même de votre équipe. Transférez la propriété d\'abord ou supprimez l\'équipe.');
+            return $this->redirectToRoute('my_team');
+        }
+
+        // On casse la relation
+        $targetPlayer->setTeam(null);
+        $em->flush();
+
+        $this->addFlash('success', 'Le joueur ' . $targetPlayer->getNickname() . ' a été retiré de l\'équipe.');
+
+        return $this->redirectToRoute('my_team');
     }
-
-    $ext = strtolower($file->guessExtension() ?: $file->getClientOriginalExtension() ?: '');
-    if (!in_array($ext, ['jpg','jpeg','png','webp'], true)) {
-        throw new \RuntimeException('Format de bannière invalide (JPG, PNG, WEBP).');
-    }
-
-    $safe = bin2hex(random_bytes(8)).'.'.$ext;
-
-    $dest = $this->getParameter('kernel.project_dir').'/public/uploads/teams/banners';
-    if (!is_dir($dest)) {
-        @mkdir($dest, 0777, true);
-    }
-
-    $file->move($dest, $safe);
-    $team->setBannerName($safe);
-}
-
 }

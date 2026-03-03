@@ -10,139 +10,174 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class InvitationService
 {
+    public const DAILY_LIMIT = 10;
+    public const EXPIRY_DAYS = 7;
+
     public function __construct(
-        private readonly InvitationRepository $invitationRepository,
         private readonly EntityManagerInterface $em,
+        private readonly InvitationRepository $invitationRepo,
     ) {}
 
     /**
-     * Business rules:
-     * - captain can invite only players without a team (LoL/Valorant)
-     * - anti-spam: max 5 invitations / 24h / team
-     * - cannot invite if team is full
-     * - cannot have multiple pending invitations from same team
-     * - invitations expire after 7 days (set at creation)
-     *
-     * @return array{0: bool, 1: ?string}
+     * ✅ SCÉNARIO A : Captain invite un joueur
      */
-    public function canSendInvitation(Team $team, Player $captain, Player $target): array
+    public function captainInvitesPlayer(Team $team, Player $player, Player $captain): Invitation
     {
-        if (!$team->hasAvailableSlot()) {
-            return [false, 'Équipe complète (max joueurs atteint).'];
-        }
+        $this->validateCanInvite($team, $player);
 
-        // anti-spam team wide
-        if ($this->invitationRepository->countSentLast24hForTeam($team) >= 5) {
-            return [false, 'Anti-spam : maximum 5 invitations par équipe sur 24h.'];
-        }
+        $invitation = new Invitation();
+        $invitation->setTeam($team);
+        $invitation->setPlayer($player);
+        $invitation->setInvitedBy($captain);
+        $invitation->setType(Invitation::TYPE_INVITATION);
+        $invitation->setStatus(Invitation::STATUS_PENDING);
 
-        // same game required
-        if ($target->getGame() !== $team->getGame()) {
-            return [false, 'Le joueur n’est pas sur le même jeu que l’équipe.'];
-        }
-
-        // For LoL/Valorant: player cannot already be in a team
-        if (in_array($team->getGame(), ['lol', 'valorant'], true) && $target->getTeam() !== null) {
-            return [false, 'Ce joueur est déjà dans une équipe.'];
-        }
-
-        // no duplicate pending invitation for same team/player
-        $existing = $this->invitationRepository->findPendingForTeamAndPlayer($team, $target);
-        if ($existing && !$existing->isExpired()) {
-            return [false, 'Invitation déjà en attente pour ce joueur.'];
-        }
-
-        return [true, null];
-    }
-
-    public function sendInvitation(Team $team, Player $captain, Player $target): Invitation
-    {
-        $inv = new Invitation();
-        $inv->setTeam($team);
-        $inv->setInvitedBy($captain);
-        $inv->setPlayer($target);
-        $inv->setStatus(Invitation::STATUS_PENDING);
-
-        $this->em->persist($inv);
+        $this->em->persist($invitation);
         $this->em->flush();
 
-        return $inv;
+        return $invitation;
     }
 
-    public function expireIfNeeded(Invitation $invitation): void
+    /**
+     * ✅ SCÉNARIO B : Joueur demande à rejoindre une équipe
+     */
+    public function playerAppliesToTeam(Player $player, Team $team): Invitation
+    {
+        $this->validateCanApply($player, $team);
+
+        $invitation = new Invitation();
+        $invitation->setTeam($team);
+        $invitation->setPlayer($player);
+        $invitation->setInvitedBy($player);
+        $invitation->setType(Invitation::TYPE_CANDIDATURE);
+        $invitation->setStatus(Invitation::STATUS_PENDING);
+
+        $this->em->persist($invitation);
+        $this->em->flush();
+
+        return $invitation;
+    }
+
+    /**
+     * ✅ Action commune : Accepter (soit le joueur accepte l'invitation, soit le capitaine accepte la candidature)
+     */
+    public function accept(Invitation $invitation, Player $actor): void
+    {
+        if ($invitation->getStatus() !== Invitation::STATUS_PENDING) {
+            throw new \RuntimeException('Cette invitation n\'est plus active.');
+        }
+
+        $player = $invitation->getPlayer();
+        $team = $invitation->getTeam();
+
+        // Sécurité : Seul le joueur concerné ou le capitaine de l'équipe peut accepter selon le type
+        if ($invitation->getType() === Invitation::TYPE_INVITATION) {
+            if ($actor->getId() !== $player->getId()) {
+                throw new \RuntimeException('Seul le joueur invité peut accepter.');
+            }
+        } else {
+            // Candidature : Seul le capitaine (owner de la team) peut accepter
+            if (!$team->getOwner() || $actor->getUser()?->getId() !== $team->getOwner()->getId()) {
+                throw new \RuntimeException('Seul le capitaine de l\'équipe peut accepter une candidature.');
+            }
+        }
+
+        // Validations finales
+        if ($player->getTeam()) {
+            throw new \RuntimeException('Le joueur a déjà une équipe.');
+        }
+        if (!$team->hasAvailableSlot()) {
+            throw new \RuntimeException('L\'équipe est complète.');
+        }
+
+        // Exécution
+        $invitation->setStatus(Invitation::STATUS_ACCEPTED);
+        $player->setTeam($team);
+
+        // Auto-décliner les autres invitations en attente pour ce joueur
+        foreach ($this->invitationRepo->findOtherPendingInvitesForPlayer($player, $invitation) as $other) {
+            $other->setStatus(Invitation::STATUS_DECLINED);
+        }
+
+        $this->em->flush();
+    }
+
+    /**
+     * ✅ Action commune : Refuser
+     */
+    public function decline(Invitation $invitation, Player $actor): void
     {
         if ($invitation->getStatus() !== Invitation::STATUS_PENDING) {
             return;
         }
 
-        if ($invitation->isExpired()) {
-            $invitation->setStatus(Invitation::STATUS_EXPIRED);
-            $this->em->flush();
+        // Logique de permission identique à accept
+        $this->validatePermission($invitation, $actor);
+
+        $invitation->setStatus(Invitation::STATUS_DECLINED);
+        $this->em->flush();
+    }
+
+    private function validateCanInvite(Team $team, Player $player): void
+    {
+        if (!$team->hasAvailableSlot()) {
+            throw new \RuntimeException('L\'équipe est déjà complète (5/5).');
+        }
+        if ($player->getTeam()) {
+            throw new \RuntimeException('Ce joueur appartient déjà à une équipe.');
+        }
+        if ($this->invitationRepo->hasPendingInvite($team, $player, Invitation::TYPE_INVITATION)) {
+            throw new \RuntimeException('Une invitation est déjà en attente pour ce joueur.');
         }
     }
 
-    /**
-     * On accept:
-     * - add player to team
-     * - mark invitation accepted
-     * - decline all other pending invitations for that player
-     */
-    public function acceptInvitation(Invitation $invitation, Player $player): void
+    private function validateCanApply(Player $player, Team $team): void
     {
-        $this->expireIfNeeded($invitation);
-
-        if ($invitation->getStatus() !== Invitation::STATUS_PENDING) {
-            throw new \RuntimeException('Invitation non valide.');
+        if ($player->getTeam()) {
+            throw new \RuntimeException('Vous avez déjà une équipe.');
         }
-
-        $team = $invitation->getTeam();
-        if (!$team || !$team->hasAvailableSlot()) {
-            throw new \RuntimeException('Équipe complète.');
+        if (!$team->hasAvailableSlot()) {
+            throw new \RuntimeException('Cette équipe est complète.');
         }
-
-        if (in_array($team->getGame(), ['lol', 'valorant'], true) && $player->getTeam() !== null) {
-            throw new \RuntimeException('Vous êtes déjà dans une équipe.');
+        if ($this->invitationRepo->hasPendingInvite($team, $player, Invitation::TYPE_CANDIDATURE)) {
+            throw new \RuntimeException('Vous avez déjà une demande en attente pour cette équipe.');
         }
+    }
 
-        $player->setTeam($team);
-        $invitation->setStatus(Invitation::STATUS_ACCEPTED);
-
-        // decline all other pending invitations
-        foreach ($this->invitationRepository->findOtherPendingForPlayer($player, $invitation) as $other) {
-            $this->expireIfNeeded($other);
-            if ($other->getStatus() === Invitation::STATUS_PENDING) {
-                $other->setStatus(Invitation::STATUS_DECLINED);
+    private function validatePermission(Invitation $invitation, Player $actor): void
+    {
+        if ($invitation->getType() === Invitation::TYPE_INVITATION) {
+            // Qui peut refuser ? Le joueur ou le capitaine qui a changé d'avis
+            // Pour simplifier, on laisse le joueur refuser.
+            if ($actor->getId() !== $invitation->getPlayer()->getId() && 
+                ($invitation->getTeam()->getOwner() && $actor->getUser()?->getId() !== $invitation->getTeam()->getOwner()->getId())) {
+                throw new \RuntimeException('Permission refusée.');
+            }
+        } else {
+            // Candidature : Le joueur peut annuler sa propre demande, ou le capitaine peut refuser.
+             if ($actor->getId() !== $invitation->getPlayer()->getId() && 
+                ($invitation->getTeam()->getOwner() && $actor->getUser()?->getId() !== $invitation->getTeam()->getOwner()->getId())) {
+                throw new \RuntimeException('Permission refusée.');
             }
         }
-
-        $this->em->flush();
     }
 
-    public function declineInvitation(Invitation $invitation, Player $player): void
+    public function expireOldInvitations(): int
     {
-        $this->expireIfNeeded($invitation);
-
-        if ($invitation->getStatus() !== Invitation::STATUS_PENDING) {
-            throw new \RuntimeException('Invitation non valide.');
+        $threshold = (new \DateTimeImmutable('now'))->sub(new \DateInterval('P' . self::EXPIRY_DAYS . 'D'));
+        $expired = 0;
+        foreach ($this->invitationRepo->findPendingOlderThan($threshold) as $inv) {
+            $inv->setStatus(Invitation::STATUS_EXPIRED);
+            $expired++;
         }
-
-        $invitation->setStatus(Invitation::STATUS_DECLINED);
-        $this->em->flush();
+        if ($expired > 0) $this->em->flush();
+        return $expired;
     }
 
-    public function cancelInvitation(Invitation $invitation, Team $team): void
+    public function expiresInDays(Invitation $inv): int
     {
-        if ($invitation->getTeam()?->getId() !== $team->getId()) {
-            throw new \RuntimeException('Invitation invalide.');
-        }
-
-        $this->expireIfNeeded($invitation);
-
-        if ($invitation->getStatus() !== Invitation::STATUS_PENDING) {
-            throw new \RuntimeException('Impossible d’annuler: invitation non en attente.');
-        }
-
-        $invitation->setStatus(Invitation::STATUS_DECLINED);
-        $this->em->flush();
+        $expiresAt = $inv->getExpiresAt() ?? $inv->getCreatedAt()->modify('+' . self::EXPIRY_DAYS . ' days');
+        $diff = (new \DateTimeImmutable('now'))->diff($expiresAt);
+        return $expiresAt < new \DateTimeImmutable('now') ? 0 : (int) $diff->format('%a');
     }
 }

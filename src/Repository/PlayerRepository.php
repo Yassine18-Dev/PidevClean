@@ -4,13 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Player;
 use App\Entity\Team;
-use App\Entity\Invitation;
+use App\Service\InvitationService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<Player>
- */
 class PlayerRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -19,84 +16,28 @@ class PlayerRepository extends ServiceEntityRepository
     }
 
     /**
-     * Simple search used for invitations.
-     *
+     * Joueurs disponibles = sans team + pas déjà invités par cette team (pending)
      * @return Player[]
      */
-    public function searchByNickname(string $q, int $limit = 10): array
+    public function findAvailableForTeam(Team $team, ?string $q = null, int $limit = 20): array
     {
-        $q = trim(mb_strtolower($q));
-        if ($q === '') {
-            return [];
+        $qb = $this->createQueryBuilder('p')
+            ->andWhere('p.team IS NULL');
+
+        if ($q !== null && trim($q) !== '') {
+            $qb->andWhere('LOWER(p.nickname) LIKE :q OR LOWER(p.name) LIKE :q')
+               ->setParameter('q', '%' . mb_strtolower(trim($q)) . '%');
         }
 
-        return $this->createQueryBuilder('p')
-            ->andWhere('LOWER(p.nickname) LIKE :q')
-            ->setParameter('q', '%'.$q.'%')
+        // Exclure ceux déjà invités (pending) par cette team
+        $qb->leftJoin('p.receivedInvitations', 'i', 'WITH', 'i.team = :t AND i.status = :s')
+           ->setParameter('t', $team)
+           ->setParameter('s', \App\Entity\Invitation::STATUS_PENDING)
+           ->andWhere('i.id IS NULL');
+
+        return $qb->orderBy('p.id', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
-
-    //    /**
-    //     * @return Player[] Returns an array of Player objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('p.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Player
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
-
-
-/**
- * Search players that can be invited for the given team:
- * - same game
- * - no team (for lol/valorant)
- * - NOT already invited (pending) by this team
- *
- * @return Player[]
- */
-public function searchAvailableForTeam(Team $team, string $q = '', int $limit = 10): array
-{
-    $qb = $this->createQueryBuilder('p');
-
-    // same game
-    $qb->andWhere('p.game = :g')->setParameter('g', $team->getGame());
-
-    // for LoL/Valorant: must be without team
-    if (in_array($team->getGame(), ['lol','valorant'], true)) {
-        $qb->andWhere('p.team IS NULL');
-    }
-
-    // exclude players already invited pending by this team
-    $qb->leftJoin('p.receivedInvitations', 'ri', 'WITH', 'ri.team = :t AND ri.status = :st')
-       ->andWhere('ri.id IS NULL')
-       ->setParameter('t', $team)
-       ->setParameter('st', Invitation::STATUS_PENDING);
-
-    $q = trim(mb_strtolower($q));
-    if ($q !== '') {
-        $qb->andWhere('LOWER(p.nickname) LIKE :q')
-           ->setParameter('q', '%'.$q.'%');
-    }
-
-    return $qb->setMaxResults($limit)->getQuery()->getResult();
-}
-
 }

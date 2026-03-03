@@ -83,6 +83,18 @@ class Player
     #[ORM\Column(name: 'riot_puuid', length: 120, nullable: true)]
     private ?string $riotPuuid = null;
 
+    #[ORM\Column(name: 'riot_summoner_name', length: 255, nullable: true)]
+    private ?string $riotSummonerName = null;
+
+    #[ORM\Column(name: 'riot_tier', length: 50, nullable: true)]
+    private ?string $riotTier = null;
+
+    #[ORM\Column(name: 'riot_division', length: 10, nullable: true)]
+    private ?string $riotDivision = null;
+
+    #[ORM\Column(name: 'riot_lp', type: 'integer', options: ['default' => 0], nullable: true)]
+    private ?int $riotLp = 0;
+
     #[ORM\Column(name: 'riot_game_name', length: 60, nullable: true)]
     private ?string $riotGameName = null;
 
@@ -91,6 +103,22 @@ class Player
 
     #[ORM\Column(name: 'riot_rank', length: 30, nullable: true)]
     private ?string $riotRank = null;
+
+    // ✅ Nouveaux champs Riot (schema:update safe)
+    #[ORM\Column(name: 'riot_linked_at', type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $riotLinkedAt = null;
+
+    #[ORM\Column(name: 'riot_region', length: 20, nullable: true)]
+    private ?string $riotRegion = null;
+
+    #[ORM\Column(name: 'riot_account_id', length: 120, nullable: true)]
+    private ?string $riotAccountId = null;
+
+    #[ORM\Column(name: 'lol_rank', length: 60, nullable: true)]
+    private ?string $lolRank = null;
+
+    #[ORM\Column(name: 'valo_rank', length: 60, nullable: true)]
+    private ?string $valoRank = null;
 
     #[ORM\Column(name: 'updated_at', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
@@ -302,6 +330,50 @@ class Player
         return $this;
     }
 
+    public function getRiotSummonerName(): ?string
+    {
+        return $this->riotSummonerName;
+    }
+
+    public function setRiotSummonerName(?string $riotSummonerName): self
+    {
+        $this->riotSummonerName = $riotSummonerName;
+        return $this;
+    }
+
+    public function getRiotTier(): ?string
+    {
+        return $this->riotTier;
+    }
+
+    public function setRiotTier(?string $riotTier): self
+    {
+        $this->riotTier = $riotTier;
+        return $this;
+    }
+
+    public function getRiotDivision(): ?string
+    {
+        return $this->riotDivision;
+    }
+
+    public function setRiotDivision(?string $riotDivision): self
+    {
+        $this->riotDivision = $riotDivision;
+        return $this;
+    }
+
+    public function getRiotLp(): ?int
+    {
+        return $this->riotLp;
+    }
+
+    public function setRiotLp(?int $riotLp): self
+    {
+        $this->riotLp = $riotLp;
+        return $this;
+    }
+
     public function getRiotGameName(): ?string
     {
         return $this->riotGameName;
@@ -344,5 +416,86 @@ class Player
     {
         $this->updatedAt = $updatedAt;
         return $this;
+    }
+
+    // ✅ Nouveaux getters/setters Riot
+
+    public function getRiotLinkedAt(): ?\DateTimeInterface
+    {
+        return $this->riotLinkedAt;
+    }
+
+    public function setRiotLinkedAt(?\DateTimeInterface $riotLinkedAt): self
+    {
+        $this->riotLinkedAt = $riotLinkedAt;
+        return $this;
+    }
+
+    public function getRiotRegion(): ?string
+    {
+        return $this->riotRegion;
+    }
+
+    public function setRiotRegion(?string $riotRegion): self
+    {
+        $this->riotRegion = $riotRegion;
+        return $this;
+    }
+
+    public function getRiotAccountId(): ?string
+    {
+        return $this->riotAccountId;
+    }
+
+    public function setRiotAccountId(?string $riotAccountId): self
+    {
+        $this->riotAccountId = $riotAccountId;
+        return $this;
+    }
+
+    public function getLolRank(): ?string
+    {
+        return $this->lolRank;
+    }
+
+    public function setLolRank(?string $lolRank): self
+    {
+        $this->lolRank = $lolRank;
+        return $this;
+    }
+
+    public function getValoRank(): ?string
+    {
+        return $this->valoRank;
+    }
+
+    public function setValoRank(?string $valoRank): self
+    {
+        $this->valoRank = $valoRank;
+        return $this;
+    }
+
+    public function hasPendingApplication(Team $team): bool
+    {
+        foreach ($this->sentInvitations as $invitation) {
+            // Un joueur a envoyé une candidature (type = candidature) à l'équipe et elle est en attente
+            if (
+                $invitation->getTeam() !== null && 
+                $invitation->getTeam()->getId() === $team->getId() &&
+                $invitation->getType() === Invitation::TYPE_CANDIDATURE &&
+                $invitation->getStatus() === Invitation::STATUS_PENDING
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function canApplyToTeam(Team $team): bool
+    {
+        // Vérifier que le joueur n'a pas déjà d'équipe
+        // Vérifier que l'équipe a une place libre
+        // Vérifier qu'il n'a pas déjà une candidature en attente
+        return !$this->team && $team->hasAvailableSlot() && !$this->hasPendingApplication($team);
     }
 }

@@ -1,218 +1,836 @@
 {% extends 'front/base_front.html.twig' %}
-{% block title %}ArenaMind • Profile{% endblock %}
+
+{% block title %}Mon Profil - ArenaMind{% endblock %}
 
 {% block body %}
-<style>
-  .p3{display:grid;grid-template-columns: 280px 1fr 320px; gap:14px;}
-  .card{background:rgba(11,15,46,.55); border:1px solid rgba(49,46,129,.55); border-radius:16px; padding:14px;}
-  .muted{color:var(--muted);}
-  .row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
-  .avatar{width:64px;height:64px;border-radius:16px; object-fit:cover; border:1px solid rgba(255,255,255,.08)}
-  .pill{display:inline-flex;align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid rgba(49,46,129,.55); background:rgba(5,8,20,.45); font-weight:900; font-size:12px;}
-  .badgeCount{display:inline-flex; align-items:center; justify-content:center; width:20px;height:20px;border-radius:999px; background:linear-gradient(90deg,var(--purple),var(--blue)); font-size:12px; font-weight:1000;}
-  .btn{display:inline-flex; align-items:center; justify-content:center; padding:10px 14px; border-radius:14px; text-decoration:none; font-weight:900; font-size:13px; border:1px solid rgba(49,46,129,.55); background:rgba(5,8,20,.45); color:#fff;}
-  .btn:hover{opacity:.95}
-  .btnPrimary{border:none; background:linear-gradient(90deg,var(--purple),var(--blue));}
-  .btnDanger{border:none; background:linear-gradient(90deg,#ef4444,#b91c1c);}
-  .list{display:flex; flex-direction:column; gap:10px;}
-  .item{padding:12px; border-radius:16px; border:1px solid rgba(49,46,129,.45); background:rgba(5,8,20,.45);}
-  .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
-  .sectionTitle{display:flex; align-items:center; justify-content:space-between; gap:10px; font-weight:1000;}
-  .mini{font-size:12px;}
-  @media(max-width: 980px){.p3{grid-template-columns: 1fr;}}
-</style>
-
-<div class="row" style="margin-bottom:14px;">
-  <div>
-    <h1 style="margin:0; font-size:22px;">Mon Profil</h1>
-    <div class="muted" style="font-size:13px; margin-top:6px;">Profil 3 colonnes + invitations</div>
-  </div>
-  <div style="display:flex; gap:10px; flex-wrap:wrap;">
-    <a class="btn" href="{{ path('ui_profile_edit') }}">✏️ Edit</a>
-    <a class="btn" href="{{ path('invitation_index') }}">🔔 Invitations {% if receivedInvitations|length > 0 %}<span class="badgeCount">{{ receivedInvitations|length }}</span>{% endif %}</a>
-  </div>
-</div>
-
-<div class="p3">
-  {# LEFT #}
-  <div class="card">
-    <div class="row" style="align-items:flex-start;">
-      {% if player and player.avatarName %}
-        <img class="avatar" src="{{ asset('images/player-avatars/' ~ player.avatarName) }}" alt="avatar">
-      {% else %}
-        <div class="avatar" style="display:flex;align-items:center;justify-content:center;">👤</div>
-      {% endif %}
-      <div style="flex:1;">
-        <div style="font-weight:1000; font-size:16px;">{{ player ? player.nickname : user.username }}</div>
-        <div class="muted" style="font-size:13px;">
-          {{ player ? (player.game|upper ~ (player.rank ? ' • ' ~ player.rank : '')) : (user.favoriteGame ?: '—') }}
+<div class="am-profile-wrapper">
+    
+    {# 1. Gestion de l'erreur "No player profile" UNIQUE #}
+    {% if player is null %}
+        <div class="am-alert-critical text-center">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Profil Joueur Introuvable</h3>
+            <p>Il n'y a pas de profil joueur associé à ce compte. Veuillez contacter l'administration ou essayer de vous reconnecter.</p>
+            <a href="{{ path('ui_logout') }}" class="am-btn-outline">Déconnexion</a>
         </div>
-      </div>
-    </div>
-
-    <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px;">
-      <span class="pill">Role: {{ user.roleType }}</span>
-      <span class="pill">Status: {{ user.status }}</span>
-    </div>
-
-    <div style="margin-top:12px;" class="muted">
-      <div><strong>Email:</strong> {{ user.email }}</div>
-      <div><strong>Registered:</strong> {{ user.createdAt|date('Y-m-d') }}</div>
-    </div>
-
-    {# ✅ SECTION DISCORD #}
-    <div class="item" style="margin-top:14px;">
-      <div class="sectionTitle">
-        <div>🔗 Comptes connectés</div>
-      </div>
-
-      <div class="item" style="margin-top:10px;">
-        <div class="sectionTitle">
-          <div>🟦 Discord</div>
-          {% if player and player.discordId %}
-            <span class="pill">Connecté</span>
-          {% else %}
-            <span class="pill">Non connecté</span>
-          {% endif %}
-        </div>
-
-        <div class="muted mini" style="margin-top:8px; line-height:1.6;">
-          {% if player and player.discordId %}
-            <div><strong>Connecté :</strong> {{ player.discordUsername ?? ('Utilisateur#' ~ player.discordId) }}</div>
-            <div><strong>ID :</strong> {{ player.discordId }}</div>
-          {% else %}
-            <div>Non connecté</div>
-          {% endif %}
-        </div>
-
-        <div class="actions">
-          {% if player and player.discordId %}
-            <a class="btn btnDanger" href="{{ path('disconnect_discord') }}"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;Déconnecter</a>
-          {% else %}
-            <a class="btn btnPrimary" href="{{ path('connect_discord') }}"><i class="fa-brands fa-discord"></i>&nbsp;Se connecter avec Discord</a>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="item" style="margin-top:10px;">
-        <div class="sectionTitle">
-          <div>🎮 Riot</div>
-          {% if player and player.riotGameName %}
-            <span class="pill">Connecté</span>
-          {% else %}
-            <span class="pill">Non connecté</span>
-          {% endif %}
-        </div>
-        <div class="muted mini" style="margin-top:8px; line-height:1.6;">
-          {% if player and player.riotGameName %}
-            <div><strong>Connecté :</strong> {{ player.riotGameName }}{% if player.riotTagLine %}#{{ player.riotTagLine }}{% endif %}</div>
-          {% else %}
-            <div>Non connecté</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <div class="actions">
-      <a class="btn btnPrimary" href="{{ path('app_player_index') }}">👥 Players</a>
-      <a class="btn" href="{{ path('app_team_index') }}">🛡️ Teams</a>
-    </div>
-  </div>
-
-  {# CENTER #}
-  <div class="card">
-    <h2 style="margin:0 0 8px; font-size:16px;">Centre</h2>
-    <div class="muted" style="font-size:13px; line-height:1.6;">
-      Ici tu peux brancher tes stats (matchs / winrate / KDA) et challenges.
-    </div>
-
-    <div style="margin-top:14px;" class="item">
-      <div class="row">
-        <div style="font-weight:1000;">🔔 Mes invitations</div>
-        {% if receivedInvitations|length > 0 %}<span class="badgeCount">{{ receivedInvitations|length }}</span>{% endif %}
-      </div>
-
-      {% if receivedInvitations|length == 0 %}
-        <div class="muted" style="font-size:13px; margin-top:8px;">Aucune invitation en attente.</div>
-      {% else %}
-        <div style="display:grid; gap:10px; margin-top:10px;">
-          {% for inv in receivedInvitations|slice(0,3) %}
-            {% set team = inv.team %}
-            <div style="padding:12px; border-radius:14px; border:1px solid rgba(49,46,129,.45); background:rgba(5,8,20,.35);">
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                <div>
-                  <div style="font-weight:1000;">{{ team.name }} ({{ team.game|upper }}) t’invite</div>
-                  <div class="muted" style="font-size:12px; margin-top:4px;">
-                    ⭐ Power: {{ team.players|length * 900 + 1845 }} • 👥 {{ team.players|length }}/{{ team.maxPlayers }}
-                    • 🕒 Expire le {{ inv.expiresAt ? inv.expiresAt|date('d/m/Y') : '—' }}
-                  </div>
-                </div>
-                <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-                  <form method="post" action="{{ path('invitation_accept', {id: inv.id}) }}">
-                    <button class="btn btnPrimary" type="submit">✓ ACCEPTER</button>
-                  </form>
-                  <form method="post" action="{{ path('invitation_decline', {id: inv.id}) }}">
-                    <button class="btn btnDanger" type="submit">✗ REFUSER</button>
-                  </form>
-                  <a class="btn" href="{{ path('app_team_show', {id: team.id}) }}">👥 Voir équipe</a>
-                </div>
-              </div>
+    {% else %}
+        
+        <div class="am-profile-container">
+            
+            {# HEADER TITRE #}
+            <div class="am-profile-title">
+                <h1>Mon Profil</h1>
+                <p>Profil 3 colonnes • invitations</p>
             </div>
-          {% endfor %}
+
+            <div class="am-profile-grid">
+                
+                {# ===== COLONNE GAUCHE (1fr) - USER PROFILE ===== #}
+                <aside class="am-col am-col-left">
+                    <div class="am-card user-card">
+                        <div class="avatar-wrap">
+                            <div class="avatar-glow">
+                                {% if player.discordAvatarUrl %}
+                                    <img src="{{ player.discordAvatarUrl }}?size=256" alt="Avatar Discord" class="avatar-img" onerror="this.onerror=null; this.src='{{ asset('images/player-avatars/player-avatar-1.png') }}'">
+                                {% else %}
+                                    <img src="{{ asset('images/player-avatars/' ~ (player.avatarName|default('player-avatar-1.png'))) }}" alt="Avatar" class="avatar-img">
+                                {% endif %}
+                                
+                                {% if player.discordId %}
+                                    <div class="discord-tag" title="Discord Connecté">
+                                        <i class="fab fa-discord"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <span class="game-indicator">{{ player.team.game|default('LOL')|upper }}</span>
+                        </div>
+
+                        <h2 class="username">{{ user.username }}</h2>
+                        
+                        <div class="status-badges">
+                            <span class="am-badge role">Role: {{ user.roleType|default('PLAYER') }}</span>
+                            <span class="am-badge status active">Status: {{ user.status|default('ACTIVE') }}</span>
+                        </div>
+
+                        <div class="user-meta">
+                            <div class="meta-item">
+                                <span class="label">Email:</span>
+                                <span class="value">{{ user.email }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="label">Registered:</span>
+                                <span class="value">{{ user.createdAt|date('Y-m-d') }}</span>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons-stack mt-3">
+                            <a href="{{ path('app_player_index') }}" class="am-btn am-btn-primary"><i class="fas fa-users"></i> Players</a>
+                            <a href="{{ path('team_index') }}" class="am-btn am-btn-dark"><i class="fas fa-shield-halved"></i> Teams</a>
+                        </div>
+
+                        {# ===== EXTERNAL ACCOUNTS ===== #}
+                        <div class="ext-accounts-section">
+                            <div class="ext-accounts-title">External Accounts</div>
+
+                            {# DISCORD #}
+                            <div class="ext-account-row">
+                                <div class="ext-account-icon discord-icon"><i class="fab fa-discord"></i></div>
+                                <div class="ext-account-info">
+                                    <span class="ext-account-name">Discord</span>
+                                    {% if player.discordId %}
+                                        <span class="ext-badge ext-badge-on">✓ Connected</span>
+                                    {% else %}
+                                        <span class="ext-badge ext-badge-off">Not linked</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    {% if player.discordId %}
+                                        <a href="{{ path('disconnect_discord') }}" class="ext-btn ext-btn-danger" title="Unlink Discord"><i class="fas fa-unlink"></i></a>
+                                    {% else %}
+                                        <a href="{{ path('connect_discord') }}" class="ext-btn ext-btn-primary">Connect</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {# RIOT #}
+                            <div class="ext-account-row">
+                                <div class="ext-account-icon riot-icon"><i class="fas fa-gamepad"></i></div>
+                                <div class="ext-account-info">
+                                    <span class="ext-account-name">Riot Games</span>
+                                    {% if riotLinked %}
+                                        <span class="ext-badge ext-badge-on">✓ Connected</span>
+                                    {% else %}
+                                        <span class="ext-badge ext-badge-off">Not linked</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    {% if riotLinked %}
+                                        <a href="{{ path('riot_refresh') }}" class="ext-btn ext-btn-info" title="Refresh rank"><i class="fas fa-sync-alt"></i></a>
+                                        <a href="{{ path('riot_disconnect') }}" class="ext-btn ext-btn-danger" title="Unlink Riot"><i class="fas fa-unlink"></i></a>
+                                    {% else %}
+                                        <a href="{{ path('riot_link') }}" class="ext-btn ext-btn-riot">Connect</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                {# ===== COLONNE CENTRALE (1.5fr) - STATS & TEAMS ===== #}
+                <main class="am-col am-col-center">
+                    
+                    {# Zone Stats / Challenges #}
+                    <section class="am-card stats-placeholder mb-4">
+                        <div class="notif-header">
+                            <h3>Tableau de Bord</h3>
+                            {% if user.roleType == 'CAPTAIN' %}
+                                <a href="{{ path('my_team') }}" class="am-btn am-btn-primary am-btn-mini">
+                                    <i class="fas fa-hammer"></i> Console Capitaine
+                                </a>
+                            {% endif %}
+                        </div>
+                        <p class="text-muted">Bienvenue sur votre espace ArenaMind. Suivez vos performances et gérez vos engagements esport.</p>
+                    </section>
+                    
+                    {# Bloc Invitations #}
+                    <section class="am-card invitations-block mb-4">
+                        <div class="card-inner">
+                            <div class="icon-circle"><i class="fas fa-bell" style="color: #9147ff;"></i></div>
+                            <div class="card-content">
+                                <h3>Centre de Notifications</h3>
+                                <p>Vous avez {{ receivedInvitations|length }} nouvelle(s) invitation(s) en attente.</p>
+                            </div>
+                            <a href="{{ path('invitation_index') }}" class="am-btn am-btn-glass">Historique complet</a>
+                        </div>
+                    </section>
+
+                    {# Bloc Équipe Actuelle #}
+                    <section class="am-card team-block mb-4">
+                        <div class="card-inner">
+                            <div class="icon-circle"><i class="fas fa-users-viewfinder" style="color: #00a8ff;"></i></div>
+                            <div class="card-content">
+                                <h3>Équipe actuelle</h3>
+                                <p>{{ player.team ? player.team.name ~ ' (' ~ player.team.game|upper ~ ')' : 'Vous n\'avez pas encore d\'équipe' }}</p>
+                            </div>
+                            {% if player.team %}
+                                <a href="{{ path('team_show', {id: player.team.id}) }}" class="am-btn am-btn-glass">Voir équipe →</a>
+                            {% else %}
+                                <a href="{{ path('team_index') }}" class="am-btn am-btn-glass">Trouver une équipe</a>
+                            {% endif %}
+                        </div>
+                    </section>
+
+                    {# Bloc Comptes Connectés #}
+                    <section class="am-card accounts-block">
+                         <div class="card-inner">
+                            <div class="icon-circle"><i class="fas fa-link" style="color: #00ff88;"></i></div>
+                            <div class="card-content">
+                                <h3>Connexions</h3>
+                                <div class="account-status-row">
+                                    <span class="acc {{ player.discordId ? 'connected' : '' }}" title="Discord"><i class="fab fa-discord"></i></span>
+                                    <span class="acc {{ player.riotPuuid ? 'connected' : '' }}" title="Riot Games"><i class="fas fa-gamepad"></i></span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                {% if player.discordId %}
+                                    <a href="{{ path('disconnect_discord') }}" class="am-btn-mini btn-danger">Délier</a>
+                                {% else %}
+                                    <a href="{{ path('connect_discord') }}" class="am-btn-mini btn-primary">Lier Discord</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </section>
+                </main>
+
+                {# ===== COLONNE DROITE (1fr) - NOTIFICATIONS ===== #}
+                <aside class="am-col am-col-right">
+                    <div class="am-card notifications-card h-100">
+                        <div class="notif-header">
+                            <h3>Dernières Activités</h3>
+                            <div class="notif-actions">
+                                <a href="{{ path('ui_profile_edit') }}" class="edit-icon-btn" title="Modifier le profil"><i class="fas fa-cog"></i></a>
+                            </div>
+                        </div>
+
+                        <div class="notif-list">
+                            {% if receivedInvitations is empty %}
+                                <div class="empty-notif text-center py-4">
+                                    <p style="opacity: 0.4;">Aucune notification récente.</p>
+                                </div>
+                            {% else %}
+                                {% for inv in receivedInvitations|slice(0, 5) %}
+                                    <div class="notif-item-rich">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                            <span style="font-size: 0.8rem; font-weight: 800; color: var(--am-primary);">INVITATION</span>
+                                            <span style="font-size: 0.7rem; opacity: 0.4;">{{ inv.createdAt|date('d/m') }}</span>
+                                        </div>
+                                        <p style="font-size: 0.9rem; margin-bottom: 12px;">L'équipe <strong>{{ inv.team.name }}</strong> vous invite à rejoindre son effectif.</p>
+                                        <div style="display: flex; gap: 8px;">
+                                            <a href="{{ path('invitation_accept', {id: inv.id}) }}" class="am-btn-mini btn-primary">Accepter</a>
+                                            <a href="{{ path('invitation_decline', {id: inv.id}) }}" class="am-btn-mini btn-danger">Refuser</a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="notif-footer mt-auto">
+                            <a href="{{ path('team_index') }}" class="view-all">Découvrir les teams →</a>
+                        </div>
+                    </div>
+                </aside>
+
+            </div>
         </div>
-
-        <div class="actions" style="margin-top:10px;">
-          <a class="btn" href="{{ path('invitation_index') }}">Voir toutes mes invitations →</a>
-        </div>
-      {% endif %}
-    </div>
-
-
-    <div style="margin-top:12px;" class="item">
-      <div style="font-weight:1000;">Équipe actuelle</div>
-      <div class="muted" style="font-size:13px; margin-top:6px;">
-        {% if player and player.team %}
-          {{ player.team.name }} ({{ player.team.game|upper }})
-        {% else %}
-          Aucune équipe pour le moment.
-        {% endif %}
-      </div>
-      <div class="actions">
-        {% if player and player.team %}
-          <a class="btn" href="{{ path('app_team_show', {id: player.team.id}) }}">Voir équipe →</a>
-        {% else %}
-          <a class="btn" href="{{ path('app_team_new') }}">Créer une équipe</a>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  {# RIGHT #}
-  <div class="card">
-    <div class="row" style="margin-bottom:8px;">
-      <h2 style="margin:0; font-size:16px;">Notifications</h2>
-      <a class="btn" href="{{ path('invitation_index') }}">Tout voir →</a>
-    </div>
-
-    <div class="list">
-      {% for inv in receivedInvitations|slice(0,2) %}
-        <div class="item">
-          <div style="font-weight:1000;">{{ inv.team.name }} t'invite</div>
-          <div class="muted" style="font-size:12px; margin-top:6px;">Demandé le {{ inv.createdAt|date('d/m/Y') }}</div>
-          <div class="actions">
-            <form method="post" action="{{ path('invitation_accept', {id: inv.id}) }}">
-              <button class="btn btnPrimary" type="submit">✓</button>
-            </form>
-            <form method="post" action="{{ path('invitation_decline', {id: inv.id}) }}">
-              <button class="btn" type="submit">✗</button>
-            </form>
-            <a class="btn" href="{{ path('app_team_show', {id: inv.team.id}) }}">Voir</a>
-          </div>
-        </div>
-      {% else %}
-        <div class="muted">Aucune invitation.</div>
-      {% endfor %}
-    </div>
-  </div>
+    {% endif %}
 </div>
+
+<style>
+/* CSS ARENA MIND PREMIUM - DESIGN IMAGE 4 */
+:root {
+    --bg-darker: #050510;
+    --bg-card: #0F1221;
+    --am-primary: #9147FF;
+    --am-secondary: #00A8FF;
+    --am-success: #00FF88;
+    --am-danger: #FF4D4D;
+    --am-border: rgba(145, 71, 255, 0.15);
+    /* Glow affect */
+    --am-glow: 0 0 30px rgba(145, 71, 255, 0.15);
+}
+
+.am-profile-wrapper {
+    background: var(--bg-darker);
+    min-height: 100vh;
+    padding: 60px 20px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #F0F4FA;
+}
+
+.am-profile-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    background: rgba(15, 18, 33, 0.7);
+    border: 1px solid var(--am-border);
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: var(--am-glow);
+    backdrop-filter: blur(12px);
+}
+
+.am-profile-title {
+    margin-bottom: 40px;
+    border-left: 4px solid var(--am-primary);
+    padding-left: 20px;
+}
+
+.am-profile-title h1 {
+    font-weight: 900;
+    font-size: 2.5rem;
+    margin: 0;
+    background: linear-gradient(90deg, #FFFFFF, #9147FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.am-profile-title p {
+    margin: 5px 0 0;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* GRID SYSTEM */
+.am-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr;
+    gap: 24px;
+}
+
+/* CARDS COMMON */
+.am-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    padding: 24px;
+    transition: all 0.3s ease;
+}
+
+.am-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(145, 71, 255, 0.3);
+}
+
+/* LEFT COLUMN - USER DETAIL */
+.user-card {
+    text-align: center;
+}
+
+.avatar-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 25px;
+}
+
+.avatar-glow {
+    width: 110px;
+    height: 110px;
+    border-radius: 22px;
+    background: #111;
+    padding: 4px;
+    box-shadow: 0 0 20px rgba(145, 71, 255, 0.2);
+    border: 1px solid rgba(145, 71, 255, 0.2);
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 18px;
+    object-fit: cover;
+}
+
+.discord-tag {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: #5865F2;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border: 2px solid #0F1221;
+}
+
+.game-indicator {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-darker);
+    padding: 2px 12px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 900;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--am-secondary);
+}
+
+.username {
+    font-weight: 800;
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+}
+
+.status-badges {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+.am-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.am-badge.role { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
+.am-badge.status.active { background: rgba(0, 255, 136, 0.1); color: var(--am-success); border: 1px solid rgba(0, 255, 136, 0.2); }
+
+.user-meta {
+    text-align: left;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.meta-item {
+    margin-bottom: 8px;
+}
+
+.meta-item .label {
+    display: block;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.meta-item .value {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* CENTER COLUMN */
+.section-header h3 {
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.card-inner {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.icon-circle {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFB800;
+    font-size: 1.2rem;
+}
+
+.card-content h3 {
+    font-size: 1rem;
+    font-weight: 800;
+    margin: 0 0 4px;
+}
+
+.card-content p {
+    font-size: 0.85rem;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* RIGHT COLUMN - NOTIF */
+.notif-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.notif-header h3 { font-size: 1.1rem; font-weight: 800; margin: 0; }
+
+.edit-icon-btn {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    transition: 0.2s;
+    margin-left: 8px;
+}
+
+.edit-icon-btn:hover { background: var(--am-primary); border-color: var(--am-primary); }
+
+.notif-item-rich {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    margin-bottom: 15px;
+    transition: 0.3s;
+}
+
+.notif-item-rich:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(145, 71, 255, 0.2);
+    transform: translateX(5px);
+}
+
+.notif-icon { color: var(--am-primary); font-size: 0.9rem; }
+
+.notif-meta { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+.notif-text { font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); }
+.notif-time { font-size: 0.75rem; color: rgba(255, 255, 255, 0.3); font-weight: 700; }
+
+.notif-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.view-all, .edit-link {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.view-all:hover, .edit-link:hover { color: var(--am-secondary); }
+
+/* BUTTONS */
+.am-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-decoration: none !important;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+}
+
+.am-btn-primary { background: #3B71FE; color: white; box-shadow: 0 4px 15px rgba(59, 113, 254, 0.3); }
+.am-btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(59, 113, 254, 0.5); }
+
+.am-btn-dark { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid rgba(255, 255, 255, 0.1); }
+.am-btn-dark:hover { background: rgba(255, 255, 255, 0.1); }
+
+.am-btn-glass {
+    background: rgba(145, 71, 255, 0.1);
+    border: 1px solid rgba(145, 71, 255, 0.2);
+    color: #F0F4FA;
+}
+
+.am-btn-glass:hover { background: var(--am-primary); border-color: var(--am-primary); transform: translateX(5px); }
+
+.am-btn-mini {
+    font-size: 10px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 800;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.btn-danger { background: rgba(255, 77, 77, 0.1); color: var(--am-danger); border: 1px solid rgba(255, 77, 77, 0.2); }
+.btn-primary { background: rgba(59, 113, 254, 0.1); color: var(--am-secondary); border: 1px solid rgba(59, 113, 254, 0.2); }
+
+/* ALERTS */
+.am-alert-critical {
+    max-width: 600px;
+    margin: 100px auto;
+    background: rgba(255, 77, 77, 0.05);
+    border: 1px solid rgba(255, 77, 77, 0.2);
+    padding: 40px;
+    border-radius: 20px;
+}
+
+.am-alert-critical i { font-size: 3rem; color: var(--am-danger); margin-bottom: 20px; }
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 1200px) {
+    .am-profile-grid { grid-template-columns: 1fr 1fr; }
+    .am-col-right { grid-column: span 2; }
+}
+
+@media (max-width: 850px) {
+    .am-profile-grid { grid-template-columns: 1fr; }
+    .am-col-right { grid-column: span 1; }
+    .am-profile-container { padding: 20px; }
+}
+
+/* ============================================
+   EXTERNAL ACCOUNTS (Left column)
+   ============================================ */
+.ext-accounts-section {
+    margin-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 18px;
+}
+.ext-accounts-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 14px;
+}
+.ext-account-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 10px;
+    transition: 0.2s;
+}
+.ext-account-row:hover { border-color: rgba(145,71,255,0.25); }
+
+.ext-account-icon {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+.discord-icon { background: rgba(88,101,242,0.15); color: #5865F2; }
+.riot-icon    { background: rgba(200,10,10,0.12);  color: #D13639; }
+
+.ext-account-info { flex: 1; text-align: left; }
+.ext-account-name { display: block; font-weight: 700; font-size: 13px; }
+
+.ext-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-top: 2px;
+}
+.ext-badge-on  { background: rgba(0,255,136,0.1); color: #00FF88; border: 1px solid rgba(0,255,136,0.2); }
+.ext-badge-off { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.08); }
+
+.ext-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 700;
+    padding: 5px 12px; border-radius: 8px;
+    text-decoration: none; cursor: pointer;
+    transition: 0.2s; white-space: nowrap; margin-left: 4px;
+}
+.ext-btn-primary { background: rgba(59,113,254,0.15); color: #00A8FF; border: 1px solid rgba(59,113,254,0.25); }
+.ext-btn-primary:hover { background: #3B71FE; color: white; }
+.ext-btn-riot    { background: rgba(209,54,57,0.12); color: #D13639; border: 1px solid rgba(209,54,57,0.2); }
+.ext-btn-riot:hover { background: #D13639; color: white; }
+.ext-btn-danger  { background: rgba(255,77,77,0.1); color: #FF4D4D; border: 1px solid rgba(255,77,77,0.2); }
+.ext-btn-danger:hover { background: rgba(255,77,77,0.25); }
+.ext-btn-info    { background: rgba(0,168,255,0.1); color: #00A8FF; border: 1px solid rgba(0,168,255,0.2); }
+.ext-btn-info:hover { background: rgba(0,168,255,0.25); }
+
+/* ============================================
+   RIOT SECTION — BAS DE PAGE
+   ============================================ */
+.riot-section-wrapper {
+    background: var(--bg-darker);
+    padding: 0 20px 80px;
+}
+.riot-section-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    background: rgba(10, 12, 30, 0.85);
+    border: 1px solid rgba(209, 54, 57, 0.18);
+    border-radius: 24px;
+    padding: 30px 34px;
+    box-shadow: 0 0 60px rgba(145,71,255,0.07), 0 0 30px rgba(209,54,57,0.06);
+    backdrop-filter: blur(14px);
+}
+
+/* Header */
+.riot-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.riot-header-left  { display: flex; align-items: center; gap: 18px; }
+.riot-header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.riot-icon-big {
+    width: 54px; height: 54px;
+    background: rgba(209,54,57,0.12);
+    border: 1px solid rgba(209,54,57,0.2);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: #D13639;
+}
+.riot-card-title {
+    font-size: 1.35rem; font-weight: 900;
+    background: linear-gradient(90deg, #ffffff, #D13639);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.riot-card-sub { font-size: 13px; color: rgba(255,255,255,0.4); font-weight: 600; margin-top: 3px; }
+
+.riot-status-badge {
+    font-size: 12px; font-weight: 800; padding: 5px 14px;
+    border-radius: 20px; letter-spacing: 0.5px;
+}
+.riot-status-on  { background: rgba(0,255,136,0.1); color: #00FF88; border: 1px solid rgba(0,255,136,0.2); }
+.riot-status-off { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.08); }
+
+.riot-action-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 800; padding: 7px 16px;
+    border-radius: 10px; text-decoration: none; transition: 0.25s;
+}
+.riot-btn-refresh  { background: rgba(0,168,255,0.1); color: #00A8FF; border: 1px solid rgba(0,168,255,0.2); }
+.riot-btn-refresh:hover  { background: #00A8FF; color: #000; }
+.riot-btn-danger   { background: rgba(255,77,77,0.1); color: #FF4D4D; border: 1px solid rgba(255,77,77,0.2); }
+.riot-btn-danger:hover   { background: rgba(255,77,77,0.3); }
+.riot-btn-connect  { background: linear-gradient(90deg, #9147FF, #D13639); color: white; border: none; }
+.riot-btn-connect:hover  { filter: brightness(1.15); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(145,71,255,0.3); }
+
+/* Games Grid */
+.riot-games-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+@media (max-width: 860px) { .riot-games-grid { grid-template-columns: 1fr; } }
+
+.riot-game-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 22px;
+    transition: 0.3s;
+}
+.riot-game-card:hover { background: rgba(255,255,255,0.035); border-color: rgba(145,71,255,0.2); }
+
+.lol-card  { border-top: 2px solid rgba(200,155,60,0.35); }
+.valo-card { border-top: 2px solid rgba(255,70,85,0.35); }
+
+.riot-game-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px;
+}
+.lol-badge  { font-size: 14px; font-weight: 900; color: #C89B3C; }
+.valo-badge { font-size: 14px; font-weight: 900; color: #FF4655; }
+
+.riot-rank-badge {
+    font-size: 11px; font-weight: 800; padding: 3px 10px;
+    border-radius: 12px; background: rgba(145,71,255,0.15);
+    border: 1px solid rgba(145,71,255,0.25); color: #a78eff;
+}
+
+.riot-stat-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 20px;
+}
+.riot-stat {
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px; padding: 10px 12px;
+}
+.riot-stat-label { display: block; font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.riot-stat-value { display: block; font-size: 14px; font-weight: 800; margin-top: 3px; }
+.riot-stat-value.ranked { color: #C89B3C; }
+
+/* Match History */
+.match-history-block { margin-top: 16px; }
+.match-history-title {
+    font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); margin-bottom: 10px;
+}
+.match-row {
+    display: grid;
+    grid-template-columns: 8px 1.2fr 1fr 1fr 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 9px 12px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    font-size: 12px; font-weight: 600;
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+.match-row:hover { background: rgba(255,255,255,0.04); }
+.match-win  { background: rgba(0,255,136,0.04); border-color: rgba(0,255,136,0.1); }
+.match-loss { background: rgba(255,77,77,0.04); border-color: rgba(255,77,77,0.1); }
+.match-result-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+}
+.match-win  .match-result-dot { background: #00FF88; box-shadow: 0 0 6px #00FF88; }
+.match-loss .match-result-dot { background: #FF4D4D; box-shadow: 0 0 6px #FF4D4D; }
+.match-champ { font-weight: 800; }
+.match-kda   { color: rgba(255,255,255,0.6); }
+.match-mode  { color: rgba(255,255,255,0.4); font-size: 11px; }
+.match-date  { color: rgba(255,255,255,0.35); font-size: 11px; }
+.match-duration { color: rgba(255,255,255,0.3); font-size: 11px; }
+
+.riot-unavailable {
+    text-align: center; padding: 24px;
+    color: rgba(255,255,255,0.3);
+    font-size: 13px; font-weight: 600;
+}
+.riot-unavailable.small { padding: 12px; font-size: 12px; }
+.riot-unavailable i { margin-right: 6px; color: rgba(255,140,0,0.7); }
+
+/* Not Connected CTA */
+.riot-not-connected {
+    text-align: center; padding: 60px 20px;
+}
+.riot-nc-icon {
+    font-size: 3rem; color: rgba(209,54,57,0.35);
+    margin-bottom: 20px;
+}
+.riot-nc-title {
+    font-size: 1.5rem; font-weight: 900; margin-bottom: 12px;
+    color: rgba(255,255,255,0.7);
+}
+.riot-nc-sub {
+    font-size: 14px; color: rgba(255,255,255,0.35);
+    max-width: 500px; margin: 0 auto 28px; line-height: 1.6;
+}
+.riot-nc-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: linear-gradient(90deg, #9147FF, #D13639);
+    color: white; text-decoration: none;
+    padding: 14px 30px; border-radius: 14px;
+    font-weight: 800; font-size: 15px;
+    transition: 0.3s;
+}
+.riot-nc-btn:hover { filter: brightness(1.15); transform: translateY(-3px); box-shadow: 0 12px 30px rgba(145,71,255,0.35); }
+
+@media (max-width: 600px) {
+    .match-row { grid-template-columns: 8px 1fr 1fr; }
+    .match-mode, .match-date, .match-duration { display: none; }
+    .riot-section-inner { padding: 20px 16px; }
+}
+</style>
 {% endblock %}

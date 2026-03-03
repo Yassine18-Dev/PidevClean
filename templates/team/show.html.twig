@@ -38,15 +38,36 @@
 
 
   <div class="topbar">
-    <a class="btn" href="{{ path('ui_profile') }}"><i class="fa-solid fa-arrow-left"></i> Retour au profil</a>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      {% if is_granted('ROLE_USER') %}
-        <a class="btn" href="{{ path('team_invitations', {'id': team.id}) }}"><i class="fa-solid fa-user-plus"></i> Invitations</a>
-      {% endif %}
-      {% if is_granted('ROLE_CAPTAIN') %}
-        <a class="btn btnPrimary" href="{{ path('app_team_edit', {'id': team.id}) }}"><i class="fa-solid fa-pen"></i> Modifier</a>
-      {% endif %}
+    <div class="mb-3" style="margin-bottom:0 !important;">
+        <a href="{{ path('profile_index') }}" class="btn btn-outline-secondary" style="display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; border:1px solid rgba(255,255,255,0.2); color:#fff; text-decoration:none;">
+            <i class="fas fa-arrow-left"></i> Retour au profil
+        </a>
     </div>
+      {% if app.user and app.user.player %}
+          {% set player = app.user.player %}
+      {% endif %}
+
+      {% if player and team.owner and app.user.id == team.owner.id %}
+          <a class="btn btnPrimary" href="{{ path('my_team') }}">
+              <i class="fa-solid fa-gear"></i> Gérer ma team
+          </a>
+      {% elseif player and not player.team and team.players|length < team.maxPlayers %}
+          {% if player.hasPendingApplication(team) %}
+              <button class="btn" style="background:rgba(255,255,255,0.1); cursor:not-allowed;" disabled>
+                  <i class="fa-solid fa-clock"></i> Candidature en attente
+              </button>
+          {% else %}
+              <form action="{{ path('team_apply', {'id': team.id}) }}" method="post" style="margin:0;">
+                  <button type="submit" class="btn btnPrimary" onclick="return confirm('Voulez-vous postuler pour rejoindre cette équipe ?')">
+                      <i class="fa-solid fa-paper-plane"></i> Demander à rejoindre
+                  </button>
+              </form>
+          {% endif %}
+      {% endif %}
+
+      {% if is_granted('ROLE_ADMIN') %}
+        <a class="btn btnDanger" href="{{ path('app_team_edit', {'id': team.id}) }}"><i class="fa-solid fa-pen"></i> Admin Edit</a>
+      {% endif %}
   </div>
 
   <div class="card">
@@ -75,6 +96,14 @@
     <div class="tabs">
       <a class="btn tabBtn active" data-tab="members"><i class="fa-solid fa-users"></i> Membres</a>
       <a class="btn tabBtn" data-tab="invites"><i class="fa-solid fa-envelope"></i> Invitations</a>
+      {% if pendingApplications is defined and pendingApplications|length > 0 %}
+          <a class="btn tabBtn" data-tab="candidatures" style="position:relative;">
+              <i class="fa-solid fa-briefcase"></i> Candidatures
+              <span style="position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:999px;">{{ pendingApplications|length }}</span>
+          </a>
+      {% elseif is_granted('ROLE_CAPTAIN') and player and team.captain and team.captain.id == player.id %}
+          <a class="btn tabBtn" data-tab="candidatures"><i class="fa-solid fa-briefcase"></i> Candidatures</a>
+      {% endif %}
       <a class="btn tabBtn" data-tab="history"><i class="fa-solid fa-clock-rotate-left"></i> Historique</a>
     </div>
 
@@ -91,7 +120,7 @@
               <div style="flex:1;">
                 <div style="font-weight:1000;">{{ member.nickname }}</div>
                 <div class="muted" style="font-size:12px;margin-top:4px;">
-                  {{ member.game|upper }}{% if member.rank %} • {{ member.rank }}{% endif %}
+                  {{ (member.riotGameName ?: team.game)|upper }}{% if member.riotRank %} • {{ member.riotRank }}{% endif %}
                 </div>
                 <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
                   {% if member.discordId %}
@@ -125,7 +154,7 @@
                   {{ team.maxPlayers - team.players|length }} place(s) libre(s)
                 </div>
               </div>
-              <a class="btn btnPrimary" href="{{ path('team_invitations', {'id': team.id}) }}"><i class="fa-solid fa-user-plus"></i> Inviter un joueur</a>
+              <a class="btn btnPrimary" href="{{ path('my_team') }}"><i class="fa-solid fa-user-plus"></i> Inviter un joueur</a>
             </div>
           </div>
         {% endif %}
@@ -139,10 +168,47 @@
           Pour inviter des joueurs + voir les invitations en attente, utilise la page dédiée.
         </div>
         <div style="margin-top:12px;">
-          <a class="btn btnPrimary" href="{{ path('team_invitations', {'id': team.id}) }}"><i class="fa-solid fa-user-plus"></i> Ouvrir Invitations</a>
+          <a class="btn btnPrimary" href="{{ path('my_team') }}"><i class="fa-solid fa-user-plus"></i> Ouvrir Invitations</a>
         </div>
       </div>
     </div>
+
+    {% if is_granted('ROLE_CAPTAIN') and player and team.captain and team.captain.id == player.id %}
+    <div id="tab-candidatures" class="tabPanel" style="display:none;">
+        <div class="grid">
+            {% if pendingApplications is defined and pendingApplications|length > 0 %}
+                {% for app in pendingApplications %}
+                    <div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">
+                        <div class="member">
+                            {% if app.player.avatarName %}
+                                <img class="avatar" src="{{ asset('images/player-avatars/' ~ app.player.avatarName) }}" alt="{{ app.player.nickname }}">
+                            {% else %}
+                                <div class="avatar" style="display:flex;align-items:center;justify-content:center;">👤</div>
+                            {% endif %}
+                            <div style="flex:1;">
+                                <div style="font-weight:1000;">{{ app.player.nickname }}</div>
+                                <div class="muted" style="font-size:12px;">Candidature reçue le {{ app.createdAt|date('d/m/Y') }}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <form action="{{ path('team_application_accept', {'id': app.id}) }}" method="post" style="flex:1; margin:0;">
+                                <button class="btn btnPrimary" style="width:100%; justify-content:center;" onclick="return confirm('Accepter cette candidature ?')"><i class="fa-solid fa-check"></i> Accepter</button>
+                            </form>
+                            <form action="{{ path('team_application_decline', {'id': app.id}) }}" method="post" style="flex:1; margin:0;">
+                                <button class="btn" style="width:100%; justify-content:center; background:rgba(239,68,68,0.15); color:#fca5a5;" onclick="return confirm('Refuser cette candidature ?')"><i class="fa-solid fa-times"></i> Refuser</button>
+                            </form>
+                            <a class="btn" href="{{ path('app_player_show', {'id': app.player.id}) }}" title="Voir profil"><i class="fa-solid fa-user"></i></a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="card" style="padding:14px; grid-column: 1 / -1;">
+                    <div class="muted">Aucune candidature en attente.</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 
     <div id="tab-history" class="tabPanel" style="display:none;">
       <div class="card" style="padding:14px;">
@@ -165,6 +231,7 @@
       members: document.getElementById('tab-members'),
       invites: document.getElementById('tab-invites'),
       history: document.getElementById('tab-history'),
+      candidatures: document.getElementById('tab-candidatures'),
     };
     btns.forEach(b=>{
       b.addEventListener('click', (e)=>{

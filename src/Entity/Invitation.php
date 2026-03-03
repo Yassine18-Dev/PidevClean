@@ -13,6 +13,12 @@ class Invitation
     public const STATUS_ACCEPTED = 'accepted';
     public const STATUS_DECLINED = 'declined';
     public const STATUS_EXPIRED = 'expired';
+    public const STATUS_CANCELED = 'canceled';
+
+    /** Invitation sent by Captain to Player */
+    public const TYPE_INVITATION = 'CAPTAIN_TO_PLAYER';
+    /** Application sent by Player to Team */
+    public const TYPE_CANDIDATURE = 'PLAYER_TO_TEAM';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -23,12 +29,12 @@ class Invitation
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Team $team = null;
 
-    /** The invited player */
+    /** The target player */
     #[ORM\ManyToOne(inversedBy: 'receivedInvitations')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Player $player = null;
 
-    /** Captain who invited */
+    /** The person who initiated the request (Captain if Invitation, Player if Candidature) */
     #[ORM\ManyToOne(inversedBy: 'sentInvitations')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Player $invitedBy = null;
@@ -41,6 +47,9 @@ class Invitation
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $expiresAt = null;
+
+    #[ORM\Column(length: 20, options: ["default" => self::TYPE_INVITATION])]
+    private string $type = self::TYPE_INVITATION;
 
     public function __construct()
     {
@@ -122,5 +131,16 @@ class Invitation
     public function isExpired(): bool
     {
         return $this->expiresAt !== null && $this->expiresAt->getTimestamp() <= time();
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = $type;
+        return $this;
     }
 }

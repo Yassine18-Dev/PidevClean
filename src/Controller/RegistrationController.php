@@ -45,6 +45,13 @@ class RegistrationController extends AbstractController
             }
 
             $em->persist($u);
+
+            // Créer le Player associé
+            $player = new \App\Entity\Player();
+            $player->setUser($u);
+            $player->setNickname($u->getUsername());
+            $em->persist($player);
+
             $em->flush();
 
             $this->addFlash('success', 'Account created! You can login.');

@@ -20,8 +20,14 @@
 
 <div class="wrap">
   <div class="topbar">
-    <a class="btn" href="{{ path('app_player_index') }}"><i class="fa-solid fa-arrow-left"></i> Retour joueurs</a>
-    <a class="btn" href="{{ path('ui_profile') }}"><i class="fa-solid fa-arrow-left"></i> Retour au profil</a>
+    <div style="display:flex; gap:10px;">
+        <a class="btn" href="{{ path('app_player_index') }}"><i class="fa-solid fa-arrow-left"></i> Retour joueurs</a>
+        <div class="mb-3" style="margin-bottom:0 !important;">
+            <a href="{{ path('profile_index') }}" class="btn btn-outline-secondary" style="display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:14px; border:1px solid rgba(255,255,255,0.2); color:#fff; text-decoration:none;">
+                <i class="fas fa-arrow-left"></i> Retour au profil
+            </a>
+        </div>
+    </div>
     {% if is_granted('ROLE_ADMIN') or (app.user and app.user.player and app.user.player.id == player.id) %}
       <a class="btn btnPrimary" href="{{ path('app_player_edit', {'id': player.id}) }}"><i class="fa-solid fa-pen"></i> Edit</a>
     {% endif %}

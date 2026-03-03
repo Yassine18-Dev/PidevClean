@@ -2,102 +2,115 @@
 
 namespace App\Controller;
 
-use App\Entity\Player;
 use Doctrine\ORM\EntityManagerInterface;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class DiscordController extends AbstractController
 {
-    #[Route('/connect/discord', name: 'connect_discord')]
-    public function connectDiscord(ClientRegistry $clientRegistry): RedirectResponse
+    /**
+     * ✅ Route appelée par Twig: path('connect_discord')
+     * Redirige vers Discord OAuth
+     */
+    #[Route('/connect/discord', name: 'connect_discord', methods: ['GET'])]
+    public function connect(ClientRegistry $clientRegistry): RedirectResponse
     {
-        // ⚠️ Le client doit s'appeler "discord" dans knpu_oauth2_client.yaml
-        return $clientRegistry
-            ->getClient('discord')
-            ->redirect(['identify', 'email'], []);
+        // scopes minimal : identify + email (email optionnel)
+        return $clientRegistry->getClient('discord')->redirect(['identify', 'email']);
     }
 
-    #[Route('/connect/discord/check', name: 'connect_discord_check')]
-    public function connectDiscordCheck(
-        Request $request,
+    /**
+     * ✅ Callback Discord
+     * IMPORTANT: dans config/packages/knpu_oauth2_client.yaml tu dois avoir:
+     * redirect_route: connect_discord_check
+     */
+    #[Route('/connect/discord/check', name: 'connect_discord_check', methods: ['GET'])]
+    public function check(
         ClientRegistry $clientRegistry,
         EntityManagerInterface $em
     ): RedirectResponse {
+        /** @var \App\Entity\User|null $user */
         $user = $this->getUser();
         if (!$user) {
+            $this->addFlash('error', 'You must be logged in.');
             return $this->redirectToRoute('ui_login');
         }
 
-        // récupère Player associé (OneToOne)
-        $player = method_exists($user, 'getPlayer') ? $user->getPlayer() : null;
-        if (!$player instanceof Player) {
-            // si pas de player, on revient au profil
-            return $this->redirectToRoute('ui_profile');
+        // Récupérer ou créer le Player associé
+        $player = $user->getPlayer();
+        if (!$player) {
+            $player = new \App\Entity\Player();
+            $player->setUser($user);
+            $player->setNickname($user->getUsername() ?? 'Player');
+            $em->persist($player);
+
+            // Important: setter la relation inverse manuellement si non géré par persist
+            $user->setPlayer($player);
         }
 
-        // OAuth: fetch user
-        $client = $clientRegistry->getClient('discord');
-        $discordUser = $client->fetchUser();
+        try {
+            /** @var \KnpU\OAuth2ClientBundle\Client\Provider\DiscordClient $client */
+            $client = $clientRegistry->getClient('discord');
+            $accessToken = $client->getAccessToken();
+            $discordUser = $client->fetchUserFromToken($accessToken);
 
-        // wohali/oauth2-discord-new retourne généralement ces champs
-        $discordId = method_exists($discordUser, 'getId') ? $discordUser->getId() : null;
+            $discordId = $discordUser->getId();
+            $username  = $discordUser->getUsername(); // "name" Discord
+            $data      = $discordUser->toArray();
+            $avatar    = $data['avatar'] ?? null;
 
-        // Selon provider, le username peut être "username" ou "global_name"
-        $data = method_exists($discordUser, 'toArray') ? $discordUser->toArray() : [];
-        $username = $data['username'] ?? $data['global_name'] ?? null;
+            $player->setDiscordId($discordId);
+            $player->setDiscordUsername($username);
+            $player->setDiscordAvatar($avatar);
+            $player->setDiscordLinkedAt(new \DateTime('now'));
 
-        // Avatar (optionnel)
-        $avatar = $data['avatar'] ?? null;
-        $avatarUrl = null;
-        if ($discordId && $avatar) {
-            // store hash (discord_avatar) + keep url as fallback
-            $avatarUrl = "https://cdn.discordapp.com/avatars/{$discordId}/{$avatar}.png";
-        }
-
-        if ($discordId) {
-            $player->setDiscordId((string) $discordId);
-            if ($username) {
-                $player->setDiscordUsername((string) $username);
+            // Optionnel : stocker url si tu utilises encore discord_avatar_url
+            if ($discordId && $avatar) {
+                $ext = str_starts_with($avatar, 'a_') ? 'gif' : 'png';
+                $player->setDiscordAvatarUrl('https://cdn.discordapp.com/avatars/' . $discordId . '/' . $avatar . '.' . $ext);
+            } else {
+                $player->setDiscordAvatarUrl(null);
             }
-            if ($avatarUrl) {
-                $player->setDiscordAvatarUrl($avatarUrl);
-            }
-            if ($avatar) {
-                $player->setDiscordAvatar((string) $avatar);
-            }
-            $player->setDiscordLinkedAt(new \DateTime());
+
             $em->flush();
 
-            $this->addFlash('success', 'Discord connecté ✅');
-        } else {
-            $this->addFlash('danger', 'Impossible de récupérer l’utilisateur Discord.');
+            $this->addFlash('success', 'Discord connected successfully!');
+        } catch (IdentityProviderException $e) {
+            $this->addFlash('error', 'Discord OAuth error: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            $this->addFlash('error', 'Unexpected error: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('ui_profile');
     }
 
-    #[Route('/disconnect/discord', name: 'disconnect_discord')]
-    public function disconnectDiscord(EntityManagerInterface $em): RedirectResponse
+    /**
+     * ✅ Route appelée par Twig: path('disconnect_discord')
+     * Déconnecte Discord côté app (Option A: garde l'avatar)
+     */
+    #[Route('/disconnect/discord', name: 'disconnect_discord', methods: ['GET','POST'])]
+    public function disconnect(EntityManagerInterface $em): Response
     {
+        /** @var \App\Entity\User|null $user */
         $user = $this->getUser();
-        if (!$user) {
-            return $this->redirectToRoute('ui_login');
+        $player = $user ? $user->getPlayer() : null;
+        if (!$player) {
+            throw $this->createAccessDeniedException();
         }
 
-        $player = method_exists($user, 'getPlayer') ? $user->getPlayer() : null;
-        if ($player instanceof Player) {
-            $player->setDiscordId(null);
-            $player->setDiscordUsername(null);
-            $player->setDiscordAvatarUrl(null);
-            $player->setDiscordLinkedAt(null);
-            $em->flush();
-        }
+        // Option A: On garde l'avatar (discordAvatar et discordAvatarUrl)
+        // Mais on supprime l'ID et l'état de connexion fonctionnel
+        $player->setDiscordId(null);
+        $player->setDiscordUsername(null);
+        $player->setDiscordLinkedAt(null);
 
-        $this->addFlash('success', 'Discord déconnecté ✅');
+        $em->flush();
+
+        $this->addFlash('info', 'Compte Discord déconnecté (données de profil conservées).');
         return $this->redirectToRoute('ui_profile');
     }
 }

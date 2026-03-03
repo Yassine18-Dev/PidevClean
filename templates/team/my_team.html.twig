@@ -1,0 +1,228 @@
+{% extends 'front/base_front.html.twig' %}
+
+{% block title %}Ma Team - ArenaMind{% endblock %}
+
+{% block body %}
+<div class="profile-wrapper">
+    <div class="profile-container">
+        <!-- HEADER -->
+        <div class="profile-header" style="grid-column: 1 / -1; margin-bottom: 2rem;">
+            <h1 class="glow-text">🛡️ Administration de {{ team.name }}</h1>
+            <p style="opacity: 0.7;">Gérez votre effectif, recrutez des joueurs et gérez les demandes d'adhésion.</p>
+        </div>
+
+        <!-- COLONNE GAUCHE : ROSTER ET INFOS TEAM -->
+        <div class="profile-card">
+            <h3 style="color: var(--am-primary); margin-bottom: 1.5rem;">👥 Effectif ({{ team.players|length }}/{{ team.maxPlayers }})</h3>
+            
+            <div class="players-list">
+                {% for player in team.players %}
+                    <div class="glass-item" style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding: 10px;">
+                        <img src="{{ player.discordAvatar ? 'https://cdn.discordapp.com/avatars/' ~ player.discordId ~ '/' ~ player.discordAvatar ~ '.png' : asset('images/default-avatar.png') }}" 
+                             style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold;">{{ player.nickname }}</div>
+                            <div style="font-size: 0.8rem; opacity: 0.6;">
+                                {% if player.user and player.user.id == team.owner.id %}
+                                    <span style="color: #facc15;">👑 Capitaine</span>
+                                {% else %}
+                                    Joueur
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {# BOUTON RETIRER (visible uniquement pour les membres, pas le captain lui-même) #}
+                        {% if player.user and player.user.id != team.owner.id %}
+                            <form method="POST" action="{{ path('team_remove_player', {playerId: player.id}) }}" 
+                                  onsubmit="return confirm('Êtes-vous sûr de vouloir retirer {{ player.nickname }} de l\'équipe ?');">
+                                <button type="submit" class="am-btn-mini btn-danger" style="border: none; padding: 6px 12px; cursor: pointer;">
+                                    Retirer
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <p style="opacity: 0.5;">Aucun joueur dans l'équipe.</p>
+                {% endfor %}
+            </div>
+
+            {% if team.players|length >= team.maxPlayers %}
+                <div class="alert alert-warning" style="margin-top: 1rem; font-size: 0.9rem;">
+                    ⚠️ Équipe complète. Vous ne pouvez plus recruter.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- COLONNE CENTRALE : DEMANDES ET RECHERCHE -->
+        <div class="profile-card" style="grid-column: span 1.5;">
+            <!-- ONGLETS / SECTIONS -->
+            <div style="margin-bottom: 2rem;">
+                <h3 style="color: var(--am-primary); border-bottom: 2px solid rgba(145, 71, 255, 0.2); padding-bottom: 10px;">
+                    📩 Demandes de rejoindre ({{ joinRequests|length }})
+                </h3>
+                
+                <div class="requests-list" style="margin-top: 1rem;">
+                    {% for req in joinRequests %}
+                        <div class="glass-item" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <img src="{{ req.player.discordAvatar ? 'https://cdn.discordapp.com/avatars/' ~ req.player.discordId ~ '/' ~ req.player.discordAvatar ~ '.png' : asset('images/default-avatar.png') }}" 
+                                     style="width: 45px; height: 45px; border-radius: 50%;">
+                                <div>
+                                    <div style="font-weight: bold; font-size: 1.1rem;">{{ req.player.nickname }}</div>
+                                    <div style="font-size: 0.85rem; opacity: 0.7;">Postulé le {{ req.createdAt|date('d/m H:i') }}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{{ path('invitation_accept', {id: req.id}) }}" class="btn-sm" style="background: var(--am-success); color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: bold;">Accepter</a>
+                                <a href="{{ path('invitation_decline', {id: req.id}) }}" class="btn-sm" style="background: rgba(255,255,255,0.1); color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none;">Refuser</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: 2rem; opacity: 0.5; border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px;">
+                            <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                            Aucune demande en attente.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- RECHERCHE DE JOUEURS -->
+            <div>
+                <h3 style="color: var(--am-primary); border-bottom: 2px solid rgba(145, 71, 255, 0.2); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    🔍 Recruter des joueurs
+                </h3>
+                
+                <form action="{{ path('my_team') }}" method="GET" style="margin: 1.5rem 0; display: flex; gap: 10px;">
+                    <input type="text" name="q" value="{{ q }}" placeholder="Rechercher par pseudo..." 
+                           style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(145, 71, 255, 0.3); border-radius: 8px; padding: 12px; color: white;">
+                    <button type="submit" class="btn-primary" style="padding: 0 20px;">Filtrer</button>
+                </form>
+
+                <div class="free-players" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    {% for p in freePlayers %}
+                        <div class="glass-item" style="padding: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;">
+                            <img src="{{ p.discordAvatar ? 'https://cdn.discordapp.com/avatars/' ~ p.discordId ~ '/' ~ p.discordAvatar ~ '.png' : asset('images/default-avatar.png') }}" 
+                                 style="width: 60px; height: 60px; border-radius: 12px; margin-bottom: 5px;">
+                            <div style="font-weight: bold;">{{ p.nickname }}</div>
+                            <div style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 10px;">Free Agent</div>
+                            
+                            {% if team.players|length < team.maxPlayers %}
+                                <form action="{{ path('team_send_invite', {id: team.id, playerId: p.id}) }}" method="POST" style="width: 100%;">
+                                    <button type="submit" style="width: 100%; background: var(--am-primary); color: white; border: none; padding: 8px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: 0.2s;">
+                                        Inviter
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button disabled style="width: 100%; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); border: none; padding: 8px; border-radius: 6px; font-size: 0.9rem;">
+                                    Team Full
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p style="grid-column: span 2; text-align: center; opacity: 0.5; padding: 1rem;">Aucun joueur disponible trouvé.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- COLONNE DROITE : INVITATIONS ENVOYÉES -->
+        <div class="profile-card">
+            <h3 style="color: var(--am-primary); margin-bottom: 1.5rem;">📤 Invitations envoyées</h3>
+            
+            <div class="sent-invitations">
+                {% for inv in sentInvitations %}
+                    <div class="glass-item" style="padding: 10px; margin-bottom: 10px; font-size: 0.9rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong>{{ inv.player.nickname }}</strong>
+                            <span class="badge" style="background: rgba(145, 71, 255, 0.2); color: var(--am-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;">PENDING</span>
+                        </div>
+                        <div style="font-size: 0.75rem; opacity: 0.5; margin-top: 5px;">
+                            Envoyée le {{ inv.createdAt|date('d/m') }}
+                        </div>
+                    </div>
+                {% else %}
+                    <p style="opacity: 0.5; font-size: 0.9rem;">Aucune invitation en attente de réponse.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --am-primary: #9147ff;
+        --am-danger: #ff4747;
+        --am-success: #2ecc71;
+        --am-bg: #050510;
+        --am-card-bg: rgba(255, 255, 255, 0.03);
+    }
+    
+    .profile-wrapper {
+        background: var(--am-bg) linear-gradient(135deg, rgba(145,71,255,0.05) 0%, rgba(0,0,0,0) 100%);
+        min-height: 100vh;
+        padding: 40px 20px;
+        color: white;
+    }
+
+    .profile-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1.5fr 1fr;
+        gap: 20px;
+    }
+
+    .profile-card {
+        background: var(--am-card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 24px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 20px rgba(145, 71, 255, 0.05);
+    }
+
+    .glass-item {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        transition: 0.2s ease;
+    }
+
+    .glass-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-borderColor: rgba(145, 71, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .glow-text {
+        text-shadow: 0 0 15px rgba(145, 71, 255, 0.6);
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+
+    .btn-primary {
+        background: var(--am-primary);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .btn-primary:hover {
+        filter: brightness(1.2);
+        box-shadow: 0 0 20px rgba(145, 71, 255, 0.4);
+    }
+
+    @media (max-width: 1024px) {
+        .profile-container {
+            grid-template-columns: 1fr;
+        }
+        .profile-card {
+            grid-column: span 1 !important;
+        }
+    }
+</style>
+{% endblock %}

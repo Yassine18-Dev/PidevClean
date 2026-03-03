@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\PlayerRepository;
+use App\Repository\UserRepository;
 use App\Entity\Player;
 use App\Form\PlayerType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,34 +16,16 @@ use Symfony\Component\Routing\Annotation\Route;
 class PlayerController extends AbstractController
 {
     #[Route('/', name: 'app_player_index', methods: ['GET'])]
-    public function index(Request $request, PlayerRepository $playerRepository): Response
+    public function index(Request $request, UserRepository $userRepository): Response
     {
         $q = trim((string) $request->query->get('q', ''));
-        $sort = (string) $request->query->get('sort', 'id'); // id|name|team
+        $sort = (string) $request->query->get('sort', 'id'); // id|username
         $dir = strtolower((string) $request->query->get('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
 
-        $qb = $playerRepository->createQueryBuilder('p')
-            ->leftJoin('p.team', 't')->addSelect('t');
-
-        if ($q !== '') {
-            $qb->andWhere('LOWER(p.nickname) LIKE :q OR LOWER(t.name) LIKE :q')
-               ->setParameter('q', '%'.mb_strtolower($q).'%');
-        }
-
-        // whitelist tri
-        $sortMap = [
-            'id' => 'p.id',
-            'name' => 'p.nickname',
-            'team' => 't.name',
-        ];
-        $orderBy = $sortMap[$sort] ?? 'p.id';
-
-        $qb->orderBy($orderBy, $dir);
-
-        $players = $qb->getQuery()->getResult();
+        $users = $userRepository->findUsersWithPlayers($q, $sort, $dir);
 
         return $this->render('player/index.html.twig', [
-            'players' => $players,
+            'users' => $users,
             'q' => $q,
             'sort' => $sort,
             'dir' => $dir,

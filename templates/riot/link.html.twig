@@ -1,0 +1,106 @@
+{% extends 'front/base_front.html.twig' %}
+{% block title %}Link Riot Account — ArenaMind{% endblock %}
+
+{% block body %}
+<div style="min-height:100vh; background:#050510; display:flex; align-items:center; justify-content:center; padding:40px 20px;">
+  <div style="width:100%; max-width:480px;">
+
+    {# HEADER #}
+    <div style="text-align:center; margin-bottom:32px;">
+      <div style="width:64px; height:64px; background:rgba(209,54,57,0.12); border:1px solid rgba(209,54,57,0.25); border-radius:18px; display:inline-flex; align-items:center; justify-content:center; font-size:26px; margin-bottom:16px;">
+        🎮
+      </div>
+      <h1 style="font-size:1.6rem; font-weight:900; color:#fff; margin:0 0 6px;">Link Riot Account</h1>
+      <p style="color:rgba(255,255,255,0.4); font-size:13px; margin:0;">Liez votre compte Riot Games pour afficher votre rank LoL et Valorant.</p>
+    </div>
+
+    {# FLASH MESSAGES #}
+    {% for msg in app.flashes('error') %}
+      <div style="background:rgba(255,77,77,0.1); border:1px solid rgba(255,77,77,0.25); color:#fca5a5; border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:13px; font-weight:600;">
+        ⚠️ {{ msg }}
+      </div>
+    {% endfor %}
+
+    {# FORM CARD #}
+    <div style="background:rgba(15,18,35,0.9); border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:28px; backdrop-filter:blur(12px); box-shadow:0 0 40px rgba(145,71,255,0.07);">
+
+      <form method="post">
+
+        {# HINT: accepte les 2 formats #}
+        <div style="background:rgba(0,168,255,0.05); border:1px solid rgba(0,168,255,0.15); border-radius:10px; padding:10px 14px; margin-bottom:22px; font-size:12px; color:rgba(255,255,255,0.5); line-height:1.6;">
+          💡 <strong style="color:rgba(0,168,255,0.8);">Formats acceptés :</strong><br>
+          • Champ "Game Name" : <code style="color:#a78eff;">SKANDER118</code> &nbsp;+&nbsp; Champ "Tag" : <code style="color:#a78eff;">EUW</code><br>
+          • Ou directement : <code style="color:#a78eff;">SKANDER118#EUW</code> dans "Game Name" (tag auto-détecté)
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,0.35); margin-bottom:8px;">
+            Game Name
+          </label>
+          <input
+            type="text"
+            name="game_name"
+            placeholder="ex: SKANDER118  ou  SKANDER118#EUW"
+            required
+            style="width:100%; box-sizing:border-box; padding:12px 14px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#fff; font-size:14px; outline:none; transition:0.2s;"
+            onfocus="this.style.borderColor='rgba(145,71,255,0.5)'"
+            onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+          >
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,0.35); margin-bottom:8px;">
+            Tag Line <span style="color:rgba(255,255,255,0.2); font-weight:400;">(sans le #)</span>
+          </label>
+          <input
+            type="text"
+            name="tag_line"
+            placeholder="ex: EUW  (pas #EUW)"
+            style="width:100%; box-sizing:border-box; padding:12px 14px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#fff; font-size:14px; outline:none; transition:0.2s;"
+            onfocus="this.style.borderColor='rgba(145,71,255,0.5)'"
+            onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+          >
+          <div style="font-size:11px; color:rgba(255,255,255,0.25); margin-top:6px;">Optionnel si vous avez mis <code>Pseudo#Tag</code> ci-dessus</div>
+        </div>
+
+        <div style="margin-bottom:24px;">
+          <label style="display:block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,0.35); margin-bottom:8px;">
+            Région
+          </label>
+          <select
+            name="region"
+            style="width:100%; padding:12px 14px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#fff; font-size:14px; outline:none;"
+          >
+            <option value="EUW1">🌍 EUW — Europe West</option>
+            <option value="EUN1">🌍 EUNE — Europe Nordic & East</option>
+            <option value="TR1">🇹🇷 TR — Turkey</option>
+            <option value="NA1">🌎 NA — North America</option>
+            <option value="BR1">🌎 BR — Brazil</option>
+            <option value="KR">🌏 KR — Korea</option>
+            <option value="JP1">🌏 JP — Japan</option>
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          style="width:100%; padding:14px; background:linear-gradient(90deg,#9147FF,#D13639); border:none; border-radius:12px; color:#fff; font-size:15px; font-weight:800; cursor:pointer; transition:0.3s;"
+          onmouseover="this.style.filter='brightness(1.15)'; this.style.transform='translateY(-2px)';"
+          onmouseout="this.style.filter=''; this.style.transform='';"
+        >
+          🎮 Link &amp; Fetch Rank
+        </button>
+      </form>
+
+    </div>
+
+    {# BACK LINK #}
+    <div style="text-align:center; margin-top:20px;">
+      <a href="{{ path('ui_profile') }}" style="color:rgba(255,255,255,0.3); font-size:13px; text-decoration:none; font-weight:600; transition:0.2s;"
+         onmouseover="this.style.color='rgba(255,255,255,0.7)'"
+         onmouseout="this.style.color='rgba(255,255,255,0.3)'"
+      >← Retour au profil</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

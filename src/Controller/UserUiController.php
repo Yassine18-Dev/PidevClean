@@ -15,8 +15,12 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class UserUiController extends AbstractController
 {
     #[Route('/profile', name: 'ui_profile', methods: ['GET'])]
-    public function profile(EntityManagerInterface $em, InvitationRepository $invitationRepository, DiscordAvatarService $discordAvatarService): Response
-    {
+    public function profile(
+        EntityManagerInterface $em,
+        InvitationRepository $invitationRepository,
+        DiscordAvatarService $discordAvatarService,
+        \App\Service\RiotApiService $riotApi
+    ): Response {
         /** @var User|null $user */
         $user = $this->getUser();
         if (!$user) return $this->redirectToRoute('ui_login');
@@ -25,16 +29,52 @@ class UserUiController extends AbstractController
         $em->flush();
 
         $player = method_exists($user, 'getPlayer') ? $user->getPlayer() : null;
-        $receivedInvitations = $player ? $invitationRepository->findReceivedPending($player) : [];
+        $receivedInvitations = $player ? $invitationRepository->findPendingForPlayer($player) : [];
         $discordAvatar = $discordAvatarService->getAvatarUrl($player);
 
+        // ─── Riot Data ────────────────────────────────────────────
+        $riotLinked  = $player && $player->getRiotPuuid();
+        $lolData     = null;
+        $valoData    = null;
+        $lolMatches  = [];
+        $valoMatches = [];
+
+        if ($riotLinked) {
+            $puuid  = $player->getRiotPuuid();
+            $region = $player->getRiotRegion() ?? 'EUW1';
+
+            try {
+                $lolData    = $riotApi->getLolProfileAndRank($puuid, $region);
+                $lolMatches = $riotApi->getLolLastMatches($puuid, $region, 3);
+            } catch (\Throwable) {
+                $lolData = ['error' => 'Données indisponibles'];
+            }
+
+            try {
+                $valoData    = $riotApi->getValoProfileAndRank($puuid, $region);
+                $valoMatches = $riotApi->getValoLastMatches($puuid, $region, 3);
+            } catch (\Throwable) {
+                $valoData = ['error' => 'Données indisponibles'];
+            }
+        }
+        // ─────────────────────────────────────────────────────────
+
         return $this->render('front/profile.html.twig', [
-            'user' => $user,
-            'player' => $player,
+            'user'                => $user,
+            'player'              => $player,
             'receivedInvitations' => $receivedInvitations,
-            'discordAvatar' => $discordAvatar,
+            'discordAvatar'       => $discordAvatar,
+            // Discord
+            'discordLinked'       => $player && $player->getDiscordId(),
+            // Riot
+            'riotLinked'          => (bool) $riotLinked,
+            'lolData'             => $lolData,
+            'lolMatches'          => $lolMatches,
+            'valoData'            => $valoData,
+            'valoMatches'         => $valoMatches,
         ]);
     }
+
 
     #[Route('/profile/edit', name: 'ui_profile_edit', methods: ['GET','POST'])]
     public function editProfile(
